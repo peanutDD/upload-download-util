@@ -1,0 +1,674 @@
+# Instincts generated from https://github.com/peanutDD/upload-download-util
+# Generated: 2026-04-21T22:34:55.947Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: upload-download-util-commit-conventional
+trigger: "when writing a commit message"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Commit Conventional
+
+## Action
+
+Use conventional commit format with prefixes: feat, chore, fix, refactor, docs
+
+## Evidence
+
+- 22 commits analyzed
+- Detected conventional commit pattern
+- Examples: chore: 添加 agent 配置文件和优化构建配置, feat(虚拟化网格): 实现精确行高计算与即时删除隐藏
+
+---
+id: upload-download-util-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Commit Length
+
+## Action
+
+Keep commit messages concise (~36 characters)
+
+## Evidence
+
+- Average commit message length: 36 chars
+- Based on 22 commits
+
+---
+id: upload-download-util-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Naming Files
+
+## Action
+
+Use camelCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: camelCase
+
+---
+id: upload-download-util-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: upload-download-util-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Export Style
+
+## Action
+
+Prefer mixed exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: mixed
+
+---
+id: upload-download-util-arch-type-based
+trigger: "when adding new code"
+confidence: 0.8
+domain: architecture
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Arch Type Based
+
+## Action
+
+Place code in the appropriate type folder (components/, services/, utils/, etc.)
+
+## Evidence
+
+- Type-based module organization detected
+- Folders: 
+
+---
+id: upload-download-util-workflow-feature-development
+trigger: "when implementing a new feature"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Workflow Feature Development
+
+## Action
+
+Follow the feature-development workflow:
+1. Add feature implementation
+2. Add tests for feature
+3. Update documentation
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~14x per month
+- Files: frontend/src/components/files/grid/*, frontend/src/components/files/*, frontend/src/hooks/files/*
+
+---
+id: upload-download-util-workflow-refactoring
+trigger: "when refactoring code"
+confidence: 0.7
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Workflow Refactoring
+
+## Action
+
+Follow the refactoring workflow:
+1. Ensure tests pass before refactor
+2. Refactor code structure
+3. Verify tests still pass
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~4x per month
+- Files: src/**/*
+
+---
+id: upload-download-util-workflow-backend-config-refactor
+trigger: "when doing backend config refactor"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Workflow Backend Config Refactor
+
+## Action
+
+Follow the backend-config-refactor workflow:
+1. Split or reorganize backend/src/config/*.rs files (e.g., create new modules, move fields)
+2. Update backend/src/config/mod.rs to include new modules
+3. Update all backend code referencing config fields to new paths
+4. Update backend/src/main.rs and related entry points
+5. Update environment variable examples (backend/.env.example)
+6. Update documentation if necessary
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: backend/src/config/*.rs, backend/src/config/mod.rs, backend/src/main.rs
+
+---
+id: upload-download-util-workflow-add-or-enhance-observability
+trigger: "when doing add or enhance observability"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Workflow Add Or Enhance Observability
+
+## Action
+
+Follow the add-or-enhance-observability workflow:
+1. Add or update tracing modules (backend/src/tracing.rs)
+2. Update backend/Cargo.toml to add/upgrade dependencies
+3. Update backend/.env.example and documentation for new config
+4. Modify backend/src/main.rs and worker entry points for tracing initialization
+5. Update or add docker-compose.yml for tracing services (e.g., Jaeger)
+6. Document changes in docs/CHANGELOG.md
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: backend/src/tracing.rs, backend/Cargo.toml, backend/.env.example
+
+---
+id: upload-download-util-workflow-codex-cli-skill-or-pipeline-extension
+trigger: "when doing codex cli skill or pipeline extension"
+confidence: 0.7
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Workflow Codex Cli Skill Or Pipeline Extension
+
+## Action
+
+Follow the codex-cli-skill-or-pipeline-extension workflow:
+1. Add or refactor scripts/codex-cli/src/skills.rs and related modules
+2. Update or split scripts/codex-cli/src/main.rs into modular files (lib.rs, pipeline.rs, etc.)
+3. Update or add scripts/codex-cli/src/bin/codex.rs as binary entrypoint
+4. Update scripts/codex-cli/Cargo.toml for new binaries or dependencies
+5. Update or add documentation in docs/design-docs/* and docs/references/*
+6. Update .github/workflows/ai-auto-fix.yml for workflow integration
+7. Document changes in docs/CHANGELOG.md
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~4x per month
+- Files: scripts/codex-cli/src/skills.rs, scripts/codex-cli/src/main.rs, scripts/codex-cli/src/lib.rs
+
+---
+id: upload-download-util-workflow-backend-entity-dto-separation
+trigger: "when doing backend entity dto separation"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Workflow Backend Entity Dto Separation
+
+## Action
+
+Follow the backend-entity-dto-separation workflow:
+1. Create backend/src/entities/*.rs for DB models
+2. Create backend/src/types/*.rs for API DTOs
+3. Update backend/src/models/*.rs to re-export or adapt to new modules
+4. Update handlers, services, and other backend code to use new types
+5. Update or add documentation to explain new architecture
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: backend/src/entities/*.rs, backend/src/types/*.rs, backend/src/models/*.rs
+
+---
+id: upload-download-util-workflow-update-or-add-ai-auto-fix-workflow
+trigger: "when doing update or add ai auto fix workflow"
+confidence: 0.65
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Workflow Update Or Add Ai Auto Fix Workflow
+
+## Action
+
+Follow the update-or-add-ai-auto-fix-workflow workflow:
+1. Add or update .github/workflows/ai-auto-fix.yml
+2. Add or update scripts/codex-cli/Cargo.toml and src files
+3. Add or update docs/CHANGELOG.md and docs/design-docs/auto-review-flow.md
+4. Update docs/references/workflow-integration.md
+5. Add or update constraint/usage documentation
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~3x per month
+- Files: .github/workflows/ai-auto-fix.yml, scripts/codex-cli/Cargo.toml, scripts/codex-cli/src/*.rs
+
+---
+id: upload-download-util-workflow-frontend-file-list-feature-or-bugfix
+trigger: "when doing frontend file list feature or bugfix"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Workflow Frontend File List Feature Or Bugfix
+
+## Action
+
+Follow the frontend-file-list-feature-or-bugfix workflow:
+1. Update frontend/src/components/files/grid/*.tsx or useFileList.ts
+2. Update frontend/src/hooks/files/useFileMutations.ts
+3. Add or update frontend/src/utils/*.ts for measurement or helper logic
+4. Update related tests if needed
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: frontend/src/components/files/grid/*.tsx, frontend/src/components/files/useFileList.ts, frontend/src/hooks/files/useFileMutations.ts
+
+---
+id: upload-download-util-instinct-file-naming
+trigger: "When creating or renaming files in the codebase"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct File Naming
+
+## Action
+
+Use camelCase for file names
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.files
+- Observed in frontend/src/components/files/grid/FileCard.tsx
+
+---
+id: upload-download-util-instinct-function-naming
+trigger: "When defining functions"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Function Naming
+
+## Action
+
+Use camelCase for function names
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.functions
+- Consistent in frontend/src/hooks/files/useFileList.ts
+
+---
+id: upload-download-util-instinct-class-naming
+trigger: "When defining classes or types"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Class Naming
+
+## Action
+
+Use PascalCase for class/type names
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.classes
+- Observed in backend/src/api/openapi.rs
+
+---
+id: upload-download-util-instinct-constant-naming
+trigger: "When defining constants"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Constant Naming
+
+## Action
+
+Use SCREAMING_SNAKE_CASE for constant names
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.constants
+- Seen in backend/src/app.rs
+
+---
+id: upload-download-util-instinct-import-style
+trigger: "When importing modules"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Import Style
+
+## Action
+
+Use relative imports
+
+## Evidence
+
+- Pattern in codeStyle.importStyle
+- Observed in frontend/src/components/files/grid/VirtualizedFileGrid.tsx
+
+---
+id: upload-download-util-instinct-export-style
+trigger: "When exporting modules or functions"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Export Style
+
+## Action
+
+Use mixed export style (named and default as appropriate)
+
+## Evidence
+
+- Pattern in codeStyle.exportStyle
+- Seen in frontend/src/utils/*.ts
+
+---
+id: upload-download-util-instinct-test-location
+trigger: "When adding tests"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Test Location
+
+## Action
+
+Place tests mixed with source files (not in a separate /tests folder)
+
+## Evidence
+
+- Pattern in architecture.folderStructure.testLocation
+- Examples in frontend/src/components/files/grid/*.test.tsx
+
+---
+id: upload-download-util-instinct-test-feature
+trigger: "When implementing a new feature"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Test Feature
+
+## Action
+
+Add corresponding tests for the feature in the same or nearby directory
+
+## Evidence
+
+- feature-development workflow includes 'Add tests for feature'
+- Seen in commit sequence for feature-development
+
+---
+id: upload-download-util-instinct-test-after-refactor
+trigger: "When refactoring code"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Test After Refactor
+
+## Action
+
+Ensure tests pass before and after refactor
+
+## Evidence
+
+- refactoring workflow step: 'Ensure tests pass before refactor'
+- Seen in refactoring workflow commit sequence
+
+---
+id: upload-download-util-instinct-commit-format
+trigger: "When writing a commit message"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Commit Format
+
+## Action
+
+Use Conventional Commits format with allowed prefixes: feat, fix, chore, refactor, docs, ci
+
+## Evidence
+
+- Pattern in commits.prefixes
+- Examples: 'feat(虚拟化网格): 实现精确行高计算与即时删除隐藏'
+
+---
+id: upload-download-util-instinct-commit-length
+trigger: "When writing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Commit Length
+
+## Action
+
+Keep commit messages concise, around 36 characters on average
+
+## Evidence
+
+- Pattern in commits.averageLength
+- Examples in commit history
+
+---
+id: upload-download-util-instinct-backend-config-refactor
+trigger: "When backend configuration needs restructuring for maintainability or new features"
+confidence: 0.95
+domain: workflow
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Backend Config Refactor
+
+## Action
+
+Split or reorganize backend/src/config/*.rs, update mod.rs, update all references, main.rs, .env.example, and docs as needed
+
+## Evidence
+
+- backend-config-refactor workflow
+- Commits: 'refactor(config): 重构配置模块为分层结构'
+
+---
+id: upload-download-util-instinct-add-observability
+trigger: "When distributed tracing or observability needs to be added or improved in the backend"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Add Observability
+
+## Action
+
+Add/update backend/src/tracing.rs, update Cargo.toml, .env.example, main.rs, docker-compose.yml, and document in CHANGELOG.md
+
+## Evidence
+
+- add-or-enhance-observability workflow
+- Commits: 'feat(observability): 引入 OpenTelemetry 分布式追踪并升级依赖'
+
+---
+id: upload-download-util-instinct-codex-cli-extension
+trigger: "When adding or refactoring skills, pipelines, or modular architecture in codex-cli"
+confidence: 0.95
+domain: workflow
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Codex Cli Extension
+
+## Action
+
+Update scripts/codex-cli/src/skills.rs, modularize main.rs, update/add bin/codex.rs, update Cargo.toml, docs, and workflows
+
+## Evidence
+
+- codex-cli-skill-or-pipeline-extension workflow
+- Commits: 'Add or refactor scripts/codex-cli/src/skills.rs and related modules'
+
+---
+id: upload-download-util-instinct-backend-entity-dto-separation
+trigger: "When refactoring backend models for clearer separation between DB and API layers"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Backend Entity Dto Separation
+
+## Action
+
+Create backend/src/entities/*.rs for DB, backend/src/types/*.rs for DTOs, update models, handlers, services, and docs
+
+## Evidence
+
+- backend-entity-dto-separation workflow
+- Commits: 'Create backend/src/entities/*.rs for DB models'
+
+---
+id: upload-download-util-instinct-ai-auto-fix-workflow
+trigger: "When introducing or improving automated code review and fixing via AI"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Ai Auto Fix Workflow
+
+## Action
+
+Add/update .github/workflows/ai-auto-fix.yml, scripts/codex-cli, and related documentation
+
+## Evidence
+
+- update-or-add-ai-auto-fix-workflow
+- Commits: 'Add or update .github/workflows/ai-auto-fix.yml'
+
+---
+id: upload-download-util-instinct-frontend-file-list-feature
+trigger: "When adding, optimizing, or fixing file listing, grid virtualization, or deletion UI in the frontend"
+confidence: 0.85
+domain: workflow
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Frontend File List Feature
+
+## Action
+
+Update frontend/src/components/files/grid/*.tsx or useFileList.ts, hooks/files/useFileMutations.ts, utils/*.ts, and related tests
+
+## Evidence
+
+- frontend-file-list-feature-or-bugfix workflow
+- Commits: 'fix(frontend): 修复文件夹列表消失和删除竞态问题'
+
