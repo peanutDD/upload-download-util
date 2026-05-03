@@ -1,0 +1,488 @@
+# Instincts generated from https://github.com/peanutDD/upload-download-util
+# Generated: 2026-05-03T18:00:17.367Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: upload-download-util-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Commit Length
+
+## Action
+
+Keep commit messages concise (~42 characters)
+
+## Evidence
+
+- Average commit message length: 42 chars
+- Based on 4 commits
+
+---
+id: upload-download-util-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Naming Files
+
+## Action
+
+Use PascalCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: PascalCase
+
+---
+id: upload-download-util-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: upload-download-util-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Export Style
+
+## Action
+
+Prefer default exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: default
+
+---
+id: upload-download-util-arch-type-based
+trigger: "when adding new code"
+confidence: 0.8
+domain: architecture
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Arch Type Based
+
+## Action
+
+Place code in the appropriate type folder (components/, services/, utils/, etc.)
+
+## Evidence
+
+- Type-based module organization detected
+- Folders: 
+
+---
+id: upload-download-util-test-framework
+trigger: "when writing tests"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Test Framework
+
+## Action
+
+Use vitest as the test framework
+
+## Evidence
+
+- Test framework detected: vitest
+- File pattern: *.test.tsx
+
+---
+id: upload-download-util-test-naming
+trigger: "when creating a test file"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Test Naming
+
+## Action
+
+Name test files using the pattern: *.test.tsx
+
+## Evidence
+
+- File pattern: *.test.tsx
+- Consistent across test files
+
+---
+id: upload-download-util-test-mocking
+trigger: "when mocking dependencies in tests"
+confidence: 0.75
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Test Mocking
+
+## Action
+
+Use vi.mock for mocking
+
+## Evidence
+
+- Mocking pattern detected: vi.mock
+- Consistent across test files
+
+---
+id: upload-download-util-workflow-feature-development-with-constraints-and-exec-plan
+trigger: "when doing feature development with constraints and exec plan"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Workflow Feature Development With Constraints And Exec Plan
+
+## Action
+
+Follow the feature-development-with-constraints-and-exec-plan workflow:
+1. Create or update one or more docs/constraints/C-XXX-*.md files to specify new or changed constraints.
+2. Create or update docs/exec-plans/YYYY-MM-DD-*.json and .md files to outline the execution plan for the feature.
+3. Update docs/quality-score.md to reflect the impact on quality metrics.
+4. Implement or update feature logic in relevant frontend/src/components/* files.
+5. Update or add related utility functions in frontend/src/utils/*.
+6. Write or update tests in frontend/src/components/*/*.test.tsx or frontend/src/utils/*.test.ts.
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: docs/constraints/C-*-*.md, docs/exec-plans/*.json, docs/exec-plans/*.md
+
+---
+id: upload-download-util-workflow-ui-bugfix-with-constraint-update
+trigger: "when doing ui bugfix with constraint update"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Workflow Ui Bugfix With Constraint Update
+
+## Action
+
+Follow the ui-bugfix-with-constraint-update workflow:
+1. Update or add a docs/constraints/C-XXX-*.md file to document the constraint or bugfix requirement.
+2. Modify relevant frontend/src/components/* files to fix the bug.
+3. Add or update test files in frontend/src/components/*/*.test.tsx.
+4. Update related stylesheets if necessary.
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: docs/constraints/C-*-*.md, frontend/src/components/**/*.{tsx,ts}, frontend/src/components/**/*.{test.tsx,test.ts}
+
+---
+id: upload-download-util-instinct-file-naming
+trigger: "When creating a new file in the codebase"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct File Naming
+
+## Action
+
+Name the file using PascalCase (e.g., MyComponent.tsx)
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.files: PascalCase
+
+---
+id: upload-download-util-instinct-function-naming
+trigger: "When defining a new function"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Function Naming
+
+## Action
+
+Name the function using camelCase (e.g., handleUpload)
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.functions: camelCase
+
+---
+id: upload-download-util-instinct-class-naming
+trigger: "When defining a new class"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Class Naming
+
+## Action
+
+Name the class using PascalCase (e.g., UploadManager)
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.classes: PascalCase
+
+---
+id: upload-download-util-instinct-constant-naming
+trigger: "When declaring a constant"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Constant Naming
+
+## Action
+
+Name the constant using SCREAMING_SNAKE_CASE (e.g., MAX_FILE_SIZE)
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.constants: SCREAMING_SNAKE_CASE
+
+---
+id: upload-download-util-instinct-import-style
+trigger: "When importing modules"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Import Style
+
+## Action
+
+Use relative import paths (e.g., import x from '../utils/x')
+
+## Evidence
+
+- Pattern in codeStyle.importStyle: relative
+
+---
+id: upload-download-util-instinct-export-style
+trigger: "When exporting modules or components"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Export Style
+
+## Action
+
+Use default export style (e.g., export default MyComponent)
+
+## Evidence
+
+- Pattern in codeStyle.exportStyle: default
+
+---
+id: upload-download-util-instinct-test-file-pattern
+trigger: "When creating a test file"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Test File Pattern
+
+## Action
+
+Name the test file with the pattern *.test.tsx or *.test.ts
+
+## Evidence
+
+- Pattern in testing.filePattern: *.test.tsx
+- Pattern in files: frontend/src/components/**/*.{test.tsx,test.ts}
+
+---
+id: upload-download-util-instinct-test-framework
+trigger: "When writing tests"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Test Framework
+
+## Action
+
+Use the vitest testing framework
+
+## Evidence
+
+- Pattern in testing.framework: vitest
+
+---
+id: upload-download-util-instinct-mocking-style
+trigger: "When mocking modules in tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Mocking Style
+
+## Action
+
+Use vi.mock for mocking
+
+## Evidence
+
+- Pattern in testing.mockingStyle: vi.mock
+
+---
+id: upload-download-util-instinct-unit-test-type
+trigger: "When writing tests"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Unit Test Type
+
+## Action
+
+Focus on unit tests
+
+## Evidence
+
+- Pattern in testing.testTypes: unit
+
+---
+id: upload-download-util-instinct-git-commit-prefix
+trigger: "When writing a commit message for a new feature"
+confidence: 0.8
+domain: git
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Git Commit Prefix
+
+## Action
+
+Prefix the commit message with 'feat' (e.g., feat(上传): ...)
+
+## Evidence
+
+- Pattern in commits.prefixes: feat
+- Seen in commit: feat(上传): 完善上传取消逻辑与URL上传预检
+
+---
+id: upload-download-util-instinct-git-commit-length
+trigger: "When writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Git Commit Length
+
+## Action
+
+Keep the commit message concise, around 40-50 characters
+
+## Evidence
+
+- Pattern in commits.averageLength: 42
+
+---
+id: upload-download-util-instinct-feature-workflow
+trigger: "When implementing a significant new feature or enhancement"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Feature Workflow
+
+## Action
+
+Follow the workflow: update constraint docs (docs/constraints/C-*-*.md), create/update exec plan (docs/exec-plans/*.json/.md), update quality metrics (docs/quality-score.md), implement feature (frontend/src/components/*), update utils (frontend/src/utils/*), write/update tests (frontend/src/components/**/*.test.tsx, frontend/src/utils/*.test.ts)
+
+## Evidence
+
+- Workflow: feature-development-with-constraints-and-exec-plan
+- Pattern in files: docs/constraints/C-*-*.md, docs/exec-plans/*.json, docs/exec-plans/*.md, docs/quality-score.md, frontend/src/components/**/*.{tsx,ts}, frontend/src/utils/*.{ts,tsx}, frontend/src/components/**/*.{test.tsx,test.ts}, frontend/src/utils/*.test.ts
+
+---
+id: upload-download-util-instinct-ui-bugfix-workflow
+trigger: "When fixing a UI bug with a related documented constraint"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Ui Bugfix Workflow
+
+## Action
+
+Follow the workflow: update/add constraint doc (docs/constraints/C-*-*.md), fix component code (frontend/src/components/*), update/add tests (frontend/src/components/**/*.test.tsx), update stylesheets if needed (frontend/src/components/**/*.css)
+
+## Evidence
+
+- Workflow: ui-bugfix-with-constraint-update
+- Pattern in files: docs/constraints/C-*-*.md, frontend/src/components/**/*.{tsx,ts}, frontend/src/components/**/*.{test.tsx,test.ts}, frontend/src/components/**/*.css
+
