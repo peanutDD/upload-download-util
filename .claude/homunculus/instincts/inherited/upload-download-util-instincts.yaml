@@ -1,0 +1,434 @@
+# Instincts generated from https://github.com/peanutDD/upload-download-util
+# Generated: 2026-05-03T20:55:29.175Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: upload-download-util-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Commit Length
+
+## Action
+
+Write moderate-length commit messages (~51 characters)
+
+## Evidence
+
+- Average commit message length: 51 chars
+- Based on 1 commits
+
+---
+id: upload-download-util-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Naming Files
+
+## Action
+
+Use camelCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: camelCase
+
+---
+id: upload-download-util-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: upload-download-util-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Export Style
+
+## Action
+
+Prefer mixed exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: mixed
+
+---
+id: upload-download-util-arch-type-based
+trigger: "when adding new code"
+confidence: 0.8
+domain: architecture
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Arch Type Based
+
+## Action
+
+Place code in the appropriate type folder (components/, services/, utils/, etc.)
+
+## Evidence
+
+- Type-based module organization detected
+- Folders: 
+
+---
+id: upload-download-util-test-framework
+trigger: "when writing tests"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Test Framework
+
+## Action
+
+Use vitest as the test framework
+
+## Evidence
+
+- Test framework detected: vitest
+- File pattern: *.test.tsx
+
+---
+id: upload-download-util-test-naming
+trigger: "when creating a test file"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Test Naming
+
+## Action
+
+Name test files using the pattern: *.test.tsx
+
+## Evidence
+
+- File pattern: *.test.tsx
+- Consistent across test files
+
+---
+id: upload-download-util-test-mocking
+trigger: "when mocking dependencies in tests"
+confidence: 0.75
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Test Mocking
+
+## Action
+
+Use vi.mock for mocking
+
+## Evidence
+
+- Mocking pattern detected: vi.mock
+- Consistent across test files
+
+---
+id: upload-download-util-test-types
+trigger: "when planning tests for a feature"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Test Types
+
+## Action
+
+Write unit, integration tests to match project standards
+
+## Evidence
+
+- Test types detected: unit, integration
+- Coverage config: no
+
+---
+id: upload-download-util-instinct-file-naming
+trigger: "When creating a new file"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct File Naming
+
+## Action
+
+Name the file using camelCase
+
+## Evidence
+
+- Pattern: namingConventions.files = camelCase
+
+---
+id: upload-download-util-instinct-function-naming
+trigger: "When defining a new function"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Function Naming
+
+## Action
+
+Use camelCase for the function name
+
+## Evidence
+
+- Pattern: namingConventions.functions = camelCase
+
+---
+id: upload-download-util-instinct-class-naming
+trigger: "When defining a new class"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Class Naming
+
+## Action
+
+Use PascalCase for the class name
+
+## Evidence
+
+- Pattern: namingConventions.classes = PascalCase
+
+---
+id: upload-download-util-instinct-constant-naming
+trigger: "When declaring a constant"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Constant Naming
+
+## Action
+
+Use SCREAMING_SNAKE_CASE for the constant name
+
+## Evidence
+
+- Pattern: namingConventions.constants = SCREAMING_SNAKE_CASE
+
+---
+id: upload-download-util-instinct-import-style
+trigger: "When importing modules"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Import Style
+
+## Action
+
+Use relative import paths
+
+## Evidence
+
+- Pattern: importStyle = relative
+
+---
+id: upload-download-util-instinct-export-style
+trigger: "When exporting modules or functions"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Export Style
+
+## Action
+
+Use either named or default exports as appropriate
+
+## Evidence
+
+- Pattern: exportStyle = mixed
+
+---
+id: upload-download-util-instinct-test-file-pattern
+trigger: "When creating a new test file"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Test File Pattern
+
+## Action
+
+Name the file with the pattern *.test.tsx
+
+## Evidence
+
+- Pattern: test filePattern = *.test.tsx
+
+---
+id: upload-download-util-instinct-test-framework
+trigger: "When writing tests"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Test Framework
+
+## Action
+
+Use the vitest testing framework
+
+## Evidence
+
+- Pattern: testing.framework = vitest
+
+---
+id: upload-download-util-instinct-test-types
+trigger: "When designing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Test Types
+
+## Action
+
+Include both unit and integration tests
+
+## Evidence
+
+- Pattern: testing.testTypes = [unit, integration]
+
+---
+id: upload-download-util-instinct-mocking
+trigger: "When mocking modules in tests"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Mocking
+
+## Action
+
+Use vi.mock for mocking
+
+## Evidence
+
+- Pattern: testing.mockingStyle = vi.mock
+
+---
+id: upload-download-util-instinct-commit-format
+trigger: "When writing a commit message"
+confidence: 0.8
+domain: git
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Commit Format
+
+## Action
+
+Write a freeform message without a required prefix, typically a single concise sentence
+
+## Evidence
+
+- Pattern: commits.type = freeform
+- Example: Add themed dialogs and upload workflow improvements
+
+---
+id: upload-download-util-instinct-commit-length
+trigger: "When composing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Commit Length
+
+## Action
+
+Keep the commit message concise, around 50 characters
+
+## Evidence
+
+- Pattern: commits.averageLength = 51
+
+---
+id: upload-download-util-instinct-error-handling
+trigger: "When handling errors in code"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Error Handling
+
+## Action
+
+Use try-catch blocks for error handling
+
+## Evidence
+
+- Pattern: errorHandling.style = try-catch
+
