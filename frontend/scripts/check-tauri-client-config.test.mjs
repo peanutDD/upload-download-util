@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { validateTauriClientConfig } from "./check-tauri-client-config.mjs";
 
-const readProjectFile = (path) => readFileSync(join(process.cwd(), path), "utf8");
+const readProjectFile = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const readJson = (path) => JSON.parse(readProjectFile(path));
 
 describe("tauri client packaging config", () => {
