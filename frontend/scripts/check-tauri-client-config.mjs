@@ -1,8 +1,8 @@
 export function validateTauriClientConfig({ packageJson, cargoToml, tauriConfig, androidConfig, capability }) {
   const api = packageJson.dependencies?.["@tauri-apps/api"];
   const cli = packageJson.devDependencies?.["@tauri-apps/cli"];
-  const tauri = cargoToml.match(/^tauri = \{ version = "([^"]+)"/m)?.[1];
-  const tauriBuild = cargoToml.match(/^tauri-build = \{ version = "([^"]+)"/m)?.[1];
+  const tauri = cargoToml.match(/^tauri\s*=\s*\{?\s*version\s*=\s*"([^"]+)"/m)?.[1];
+  const tauriBuild = cargoToml.match(/^tauri-build\s*=\s*\{?\s*version\s*=\s*"([^"]+)"/m)?.[1];
 
   if (api !== "^2.11.0") {
     throw new Error(`@tauri-apps/api must be ^2.11.0, got ${api}`);
