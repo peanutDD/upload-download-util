@@ -1,0 +1,84 @@
+{
+  "date": "2026-05-05",
+  "task": "tauri-client-refresh",
+  "scope": "/Users/tyone/github/upload-download-util/frontend/src-tauri",
+  "goal": "Update the Tauri v2 client baseline and produce fresh Android and macOS client packages.",
+  "approval_required_before_execution": true,
+  "current_facts": {
+    "branch": "codex/tauri",
+    "worktree_clean_at_discovery": true,
+    "branch_risk": "local branch reports behind 1",
+    "tauri_latest": {
+      "tauri_crate": "2.11.0",
+      "tauri_build_crate": "2.6.0",
+      "@tauri-apps/api": "2.11.0",
+      "@tauri-apps/cli": "2.11.0"
+    },
+    "android": {
+      "rust_targets_installed": [
+        "aarch64-linux-android",
+        "armv7-linux-androideabi",
+        "i686-linux-android",
+        "x86_64-linux-android"
+      ],
+      "missing_sdk_components": [
+        "platform-tools",
+        "build-tools",
+        "platforms",
+        "ndk",
+        "cmdline-tools"
+      ]
+    },
+    "macos": {
+      "xcode_command_line_tools": "installed",
+      "xcode": "installed"
+    }
+  },
+  "assumptions": [
+    "Conservative Tauri client refresh only; no broad frontend dependency major migration.",
+    "APK is the first Android deliverable; AAB is built after APK succeeds.",
+    "macOS deliverable is the standard Tauri build output.",
+    "Version remains 0.1.0 unless the human requests a release version bump.",
+    "Existing local Android signing defaults are acceptable for QA installable builds only."
+  ],
+  "risks": [
+    "Android packaging is blocked until Android SDK components are installed or configured.",
+    "Local branch is behind one upstream commit.",
+    "Tauri 2.11.0 refresh updates a sizable Rust transitive dependency graph.",
+    "Default local Android keystore is not production distribution signing.",
+    "macOS install script uses rm -rf and /Applications and must not run without explicit approval."
+  ],
+  "dependencies": [
+    "Rust stable with rustfmt and clippy",
+    "Node 22/npm for CI parity",
+    "Xcode and Command Line Tools",
+    "Android SDK platform-tools, build-tools, platforms, cmdline-tools, and NDK",
+    "Network access to npm and crates.io"
+  ],
+  "planned_file_changes": [
+    "frontend/package.json",
+    "frontend/package-lock.json",
+    "frontend/src-tauri/Cargo.toml",
+    "frontend/src-tauri/Cargo.lock",
+    "frontend/scripts/check-tauri-client-config.mjs",
+    "frontend/scripts/check-tauri-client-config.test.mjs",
+    "docs/quality-score.md",
+    "docs/exec-plans/2026-05-05-tauri-client-refresh-evidence.md"
+  ],
+  "verification_commands": [
+    "cd frontend && npm run lint",
+    "cd frontend && npx tsc -b --noEmit",
+    "cd frontend && npm run test",
+    "cd frontend && npm run build",
+    "cd frontend && node scripts/check-bundle-size.mjs",
+    "cd frontend/src-tauri && cargo fmt --all -- --check",
+    "cd frontend/src-tauri && cargo clippy --all-targets --all-features -- -D warnings",
+    "cd frontend/src-tauri && cargo test --all-targets --all-features",
+    "cd frontend && npx tauri info",
+    "cd frontend && npx tauri build",
+    "cd frontend && npm run android:doctor",
+    "cd frontend && npm run android:apk:installable",
+    "cd frontend && npm run android:aab"
+  ],
+  "execution_gate": "Wait for human approval of this plan before changing dependencies, installing SDK components, building packages, committing, pushing, or opening a PR."
+}

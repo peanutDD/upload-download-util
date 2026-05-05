@@ -2,6 +2,7 @@
 
 | Date | Task | Score | Notes |
 | --- | --- | --- | --- |
+| 2026-05-05 | tauri client refresh | 89 | Tauri core updated to 2.11.0 / tauri-build 2.6.0 with JS API/CLI 2.11.0; added Tauri config guard and headless macOS DMG script. Frontend lint/typecheck/test/build/bundle budget and Tauri fmt/clippy/test passed. macOS DMG/app generated and DMG verified. Android package not generated because local SDK lacks platform-tools/build-tools/platforms/cmdline-tools/NDK; rerun after SDK is installed. |
 | 2026-05-05 | codex-cli medium plus severity | 95 | 修复 Gemini Review 字面量 `Medium+` 未进入自动修复/pending 的漏洞：severity 判定集中到 `types.rs`，默认 allow-list 扩展为 `Critical,High,Medium+,Medium`，`CODEX_ALLOWED_SEVERITIES=Medium` 仍覆盖 `Medium+`；新增红绿回归测试、C-035 约束与使用文档。 |
 | 2026-05-05 | light tech chrome nav footer | 95 | Light 模式顶部标题栏与底部展示栏改为深色高级科技 chrome：nav/footer token 使用 slate/cyan/purple 发光层，macOS titlebar light override 不再回退白色，NavBar 改用 background shorthand 正确渲染渐变；补充 token 回归测试、桌面/移动截图证据，目标测试、lint、build 与布局治理通过。 |
 | 2026-05-05 | frontend fluid sizing PR5 global | 95 | 将 `check:fluid-sizing` 扩展 `--scope=global` 和 signed px 检测；全局 tokens、CTA/nav shadow、devtools min-height、preview text calc 与 hover translate 固定视觉尺寸收敛为 `rem`，observer/clipboard 非视觉例外显式标注；补充 in-app browser `/files` 截图证明。 |

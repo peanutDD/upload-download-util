@@ -8,4 +8,3 @@ use crate::AppState;
 pub async fn backend_health(state: State<'_, AppState>) -> Result<HealthResponse, AppError> {
     state.backend_service.health().await
 }
-
