@@ -1,0 +1,55 @@
+{
+  "date": "2026-05-05",
+  "title": "Purple Nebula Bloom Theme",
+  "style": "Dreamy cosmic purple nebula",
+  "implementationSurface": "Purple theme CSS tokens plus token regression tests",
+  "scope": {
+    "included": [
+      "purple-mode page surface tokens",
+      "purple-mode nav and footer visual tokens",
+      "purple-mode file list, upload, dialog, preview, and settings glass tokens",
+      "purple-mode regression tests",
+      "desktop and mobile screenshot evidence"
+    ],
+    "excluded": [
+      "DOM structure changes",
+      "layout, spacing, sizing, routing, props, store, or persistence changes",
+      "new theme mode",
+      "animation-heavy overlay"
+    ]
+  },
+  "assumptions": [
+    "The request targets the existing purple mode.",
+    "Token-only color, gradient, border, opacity, and shadow changes are allowed.",
+    "Existing component CSS remains the layout authority."
+  ],
+  "risks": [
+    "Dreamier nebula fields can reduce contrast if surface opacity is too bright.",
+    "Large token blocks can unintentionally affect multiple UI surfaces.",
+    "Fluid sizing governance must remain unchanged and passing."
+  ],
+  "dependencies": [
+    "frontend/src/styles/tokens.css",
+    "frontend/src/styles/purpleThemeTokens.test.ts",
+    "frontend/src/store/themeStore.ts",
+    "frontend/src/components/layout/PageLayout.tsx",
+    "frontend/src/styles/nav.css",
+    "frontend/src/components/files/list/FileListGlass.css",
+    "frontend/src/components/files/upload/UploadDialog.css"
+  ],
+  "verification": [
+    "npm run test -- src/styles/purpleThemeTokens.test.ts",
+    "npm run check:tokens:strict:layout",
+    "npm run check:fluid-sizing -- --scope=all",
+    "npm run lint",
+    "npm run test",
+    "npm run build",
+    "git diff --check"
+  ],
+  "screenshots": [
+    "docs/exec-plans/2026-05-05-purple-nebula-bloom-files-desktop.png",
+    "docs/exec-plans/2026-05-05-purple-nebula-bloom-files-mobile.png",
+    "docs/exec-plans/2026-05-05-purple-nebula-bloom-settings-desktop.png",
+    "docs/exec-plans/2026-05-05-purple-nebula-bloom-settings-mobile.png"
+  ]
+}

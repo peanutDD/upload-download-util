@@ -2898,35 +2898,38 @@
 [data-theme="purple"], .purple {
     --color-focus-ring: rgba(var(--rgb-purple-500), 0.88);
 
-    --surface-page-gradient: linear-gradient(
-        135deg,
-        rgb(var(--rgb-slate-900)),
-        rgb(var(--rgb-purple-900)),
-        rgb(var(--rgb-slate-900))
-    );
-    --surface-page-gradient-dark: linear-gradient(
-        135deg,
-        rgb(var(--rgb-slate-950)),
-        rgb(var(--rgb-purple-400)),
-        rgb(var(--rgb-slate-950))
-    );
-    --filelist-page-bg: rgb(var(--rgb-purple-950));
+    --surface-page-gradient:
+        radial-gradient(circle at 16% 18%, rgba(var(--rgb-white), 0.72) 0 0.08%, transparent 0.18%),
+        radial-gradient(circle at 72% 14%, rgba(var(--rgb-white), 0.52) 0 0.07%, transparent 0.16%),
+        radial-gradient(circle at 88% 62%, rgba(var(--rgb-white), 0.5) 0 0.07%, transparent 0.16%),
+        radial-gradient(78% 56% at 18% 12%, rgba(var(--rgb-rose-400), 0.24), transparent 64%),
+        radial-gradient(70% 52% at 38% 10%, rgba(var(--rgb-fuchsia-500), 0.18), transparent 66%),
+        radial-gradient(76% 58% at 82% 18%, rgba(var(--rgb-purple-500), 0.42), transparent 68%),
+        radial-gradient(72% 50% at 48% 82%, rgba(var(--rgb-cyan-400), 0.18), transparent 70%),
+        linear-gradient(160deg, rgb(var(--rgb-slate-950)) 0%, rgb(var(--rgb-purple-950)) 48%, rgb(var(--rgb-slate-950)) 100%);
+    --surface-page-gradient-dark:
+        radial-gradient(circle at 18% 16%, rgba(var(--rgb-white), 0.58) 0 0.07%, transparent 0.16%),
+        radial-gradient(74% 54% at 20% 10%, rgba(var(--rgb-fuchsia-500), 0.22), transparent 66%),
+        radial-gradient(72% 52% at 82% 22%, rgba(var(--rgb-purple-500), 0.36), transparent 68%),
+        radial-gradient(70% 48% at 48% 82%, rgba(var(--rgb-cyan-400), 0.14), transparent 70%),
+        linear-gradient(160deg, rgb(var(--rgb-slate-950)) 0%, rgb(var(--rgb-purple-950)) 52%, rgb(var(--rgb-slate-950)) 100%);
+    --filelist-page-bg: rgb(var(--rgb-slate-950));
 
     --shadow-neon-purple-soft: 0 0 clamp(0.75rem, 1.6vw, 1.25rem) rgba(var(--rgb-purple-500), 0.18);
     --shadow-neon-cyan-soft: 0 0 clamp(0.75rem, 1.6vw, 1.25rem) rgba(var(--rgb-cyan-400), 0.15);
 
-    --nav-top-glow: linear-gradient(90deg, transparent, rgba(var(--rgb-purple-500), 0.5), transparent);
-    --nav-bottom-line: rgba(var(--rgb-emerald-300), 0.8);
+    --nav-top-glow: linear-gradient(90deg, transparent, rgba(var(--rgb-rose-400), 0.48), rgba(var(--rgb-fuchsia-500), 0.62), rgba(var(--rgb-cyan-400), 0.42), transparent);
+    --nav-bottom-line: linear-gradient(90deg, transparent, rgba(var(--rgb-fuchsia-500), 0.72), rgba(var(--rgb-rose-400), 0.58), rgba(var(--rgb-cyan-400), 0.58), transparent);
     --nav-side-ambience: linear-gradient(
         90deg,
-        rgba(var(--rgb-fuchsia-500), 0.1),
+        rgba(var(--rgb-rose-400), 0.12),
         transparent,
-        rgba(var(--rgb-fuchsia-500), 0.1)
+        rgba(var(--rgb-fuchsia-500), 0.16)
     );
 
-    --nav-btn-border: rgba(var(--rgb-emerald-300), 0.15);
-    --nav-btn-border-hover: rgba(var(--rgb-emerald-300), 0.3);
-    --nav-btn-icon: rgba(var(--rgb-emerald-300), 0.8);
+    --nav-btn-border: rgba(var(--rgb-fuchsia-500), 0.2);
+    --nav-btn-border-hover: rgba(var(--rgb-rose-400), 0.38);
+    --nav-btn-icon: rgba(var(--rgb-fuchsia-500), 0.86);
 
     --footer-grid-bg-image: linear-gradient(rgba(var(--rgb-purple-500), 0.5) 1px, transparent 1px),
         linear-gradient(90deg, rgba(var(--rgb-purple-500), 0.5) 1px, transparent 1px);
@@ -2944,13 +2947,14 @@
         rgba(var(--rgb-cyan-400), 0.6),
         transparent
     );
-    --footer-bottom-line: linear-gradient(90deg, transparent, rgba(var(--rgb-emerald-400), 0.4), transparent);
+    --footer-bottom-line: linear-gradient(90deg, transparent, rgba(var(--rgb-rose-400), 0.44), rgba(var(--rgb-cyan-400), 0.36), transparent);
     --footer-shimmer-bg: linear-gradient(
         90deg,
         transparent,
-        rgba(var(--rgb-purple-500), 0.8),
-        rgba(var(--rgb-cyan-400), 0.8),
-        rgba(var(--rgb-emerald-500), 0.6),
+        rgba(var(--rgb-purple-500), 0.82),
+        rgba(var(--rgb-fuchsia-500), 0.76),
+        rgba(var(--rgb-rose-400), 0.62),
+        rgba(var(--rgb-cyan-400), 0.68),
         transparent
     );
     --footer-divider-left: linear-gradient(90deg, transparent, rgba(var(--rgb-fuchsia-500), 0.3));
@@ -2958,12 +2962,13 @@
     --footer-dot-bg: rgba(var(--rgb-cyan-400), 0.6);
     --footer-dot-shadow: 0 0 0.75rem rgba(var(--rgb-cyan-400), 0.5);
 
-    --cta-primary-border: rgba(var(--rgb-emerald-300), 0.45);
+    --cta-primary-border: rgba(var(--rgb-rose-400), 0.45);
     --cta-primary-bg: linear-gradient(
         90deg,
-        rgba(var(--rgb-purple-500), 0.42),
-        rgba(var(--rgb-fuchsia-500), 0.28),
-        rgba(var(--rgb-cyan-400), 0.24)
+        rgba(var(--rgb-purple-500), 0.5),
+        rgba(var(--rgb-fuchsia-500), 0.38),
+        rgba(var(--rgb-rose-400), 0.3),
+        rgba(var(--rgb-cyan-400), 0.2)
     );
     --cta-primary-shadow:
         0 0 0 1px rgba(var(--rgb-purple-500), 0.12),
@@ -2972,20 +2977,21 @@
     --auth-button-text: rgb(var(--rgb-slate-950));
     --auth-button-gradient: linear-gradient(
         to right,
-        rgba(var(--rgb-emerald-500), 0.85),
-        rgba(var(--rgb-cyan-400), 0.85),
-        rgba(var(--rgb-sky-400), 0.85)
+        rgba(var(--rgb-purple-500), 0.9),
+        rgba(var(--rgb-fuchsia-500), 0.84),
+        rgba(var(--rgb-rose-400), 0.72)
     );
     --auth-button-gradient-hover: linear-gradient(
         to right,
-        rgba(var(--rgb-emerald-500), 1),
-        rgba(var(--rgb-cyan-400), 1),
-        rgba(var(--rgb-sky-400), 1)
+        rgba(var(--rgb-purple-500), 1),
+        rgba(var(--rgb-fuchsia-500), 0.96),
+        rgba(var(--rgb-rose-400), 0.86)
     );
 
     --filelist-tech-glow-purple: rgba(var(--rgb-purple-500), 0.4);
     --filelist-tech-glow-cyan: rgba(var(--rgb-cyan-400), 0.4);
-    --filelist-tech-glow-green: rgba(var(--rgb-emerald-500), 0.4);
+    /* Legacy token name: purple theme intentionally uses rose here after removing green accents. */
+    --filelist-tech-glow-green: rgba(var(--rgb-rose-400), 0.32);
     --filelist-bar-border: rgb(var(--rgb-purple-900));
     --filelist-bar-bg-top: rgb(var(--rgb-purple-900));
     --filelist-bar-bg-bottom: rgb(var(--rgb-purple-950));
@@ -3006,10 +3012,12 @@
     --filelist-btn-border-hover: rgba(var(--rgb-white), 0.24);
     --filelist-toolbar-btn-border: rgba(var(--rgb-white), 0.22);
     --filelist-toolbar-btn-bg:
-        radial-gradient(120% 90% at 15% 0%, rgba(var(--rgb-purple-500), 0.22), transparent 62%),
+        radial-gradient(120% 90% at 15% 0%, rgba(var(--rgb-fuchsia-500), 0.24), transparent 62%),
+        radial-gradient(120% 90% at 88% 100%, rgba(var(--rgb-rose-400), 0.16), transparent 66%),
         linear-gradient(180deg, rgba(var(--rgb-white), 0.18), rgba(var(--rgb-white), 0.1));
     --filelist-toolbar-btn-bg-hover:
-        radial-gradient(120% 90% at 15% 0%, rgba(var(--rgb-purple-500), 0.3), transparent 62%),
+        radial-gradient(120% 90% at 15% 0%, rgba(var(--rgb-fuchsia-500), 0.34), transparent 62%),
+        radial-gradient(120% 90% at 88% 100%, rgba(var(--rgb-rose-400), 0.24), transparent 66%),
         linear-gradient(180deg, rgba(var(--rgb-white), 0.24), rgba(var(--rgb-white), 0.14));
     --filelist-toolbar-btn-border-hover: rgba(var(--rgb-white), 0.32);
     --file-type-badge-bg: rgba(var(--rgb-white), 0.14);
@@ -3040,9 +3048,9 @@
     --upload-accent: rgba(var(--rgb-purple-500), 0.85);
     --upload-accent-bg: rgba(var(--rgb-purple-500), 0.16);
     --upload-backdrop: rgba(var(--rgb-black), 0.72);
-    --upload-backdrop-glow-1: rgba(var(--rgb-purple-300), 0.18);
-    --upload-backdrop-glow-2: rgba(var(--rgb-fuchsia-300), 0.16);
-    --upload-backdrop-glow-3: rgba(var(--rgb-purple-700), 0.24);
+    --upload-backdrop-glow-1: rgba(var(--rgb-purple-500), 0.22);
+    --upload-backdrop-glow-2: rgba(var(--rgb-fuchsia-500), 0.2);
+    --upload-backdrop-glow-3: rgba(var(--rgb-rose-400), 0.18);
     --upload-doc-icon-main: var(--rgb-purple-500);
     --upload-doc-icon-fold: var(--rgb-fuchsia-300);
     --upload-doc-icon-paper: var(--rgb-white);
@@ -3183,7 +3191,7 @@
         rgba(var(--rgb-cyan-300), 1),
         rgba(var(--rgb-purple-400), 1)
     );
-    --preview-label-text-solid: rgba(var(--rgb-emerald-300), 0.99);
+    --preview-label-text-solid: rgba(var(--rgb-rose-400), 0.99);
     --preview-label-text-shadow: 0 0 0.625rem rgba(var(--rgb-purple-500), 0.65);
     --preview-label-bar: linear-gradient(
         90deg,
@@ -3308,9 +3316,9 @@
         to right,
         rgba(var(--rgb-fuchsia-500), 0.1),
         transparent,
-        rgba(var(--rgb-emerald-400), 0.1)
+        rgba(var(--rgb-cyan-400), 0.1)
     );
-    --settings-surface-hairline: rgba(var(--rgb-emerald-300), 0.4);
+    --settings-surface-hairline: rgba(var(--rgb-rose-400), 0.4);
 
     --dialog-label-text: rgba(var(--rgb-slate-200), 0.9);
     --dialog-label-muted: rgba(var(--rgb-white), 0.6);
@@ -3348,7 +3356,8 @@
     --dialog-primary-btn-bg: linear-gradient(
         to right,
         rgba(var(--rgb-purple-500), 0.75),
-        rgba(var(--rgb-fuchsia-500), 0.7)
+        rgba(var(--rgb-fuchsia-500), 0.7),
+        rgba(var(--rgb-rose-400), 0.58)
     );
     --dialog-primary-btn-text: rgba(var(--rgb-white), 0.98);
     --dialog-primary-btn-shadow: 0 0.75rem 2.1875rem rgba(var(--rgb-purple-500), 0.28);

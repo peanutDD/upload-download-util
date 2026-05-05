@@ -33,6 +33,10 @@ export default function Settings() {
     navigate("/login");
   }, [clearAuth, navigate]);
 
+  const handleBack = useCallback(() => {
+    navigate(-1);
+  }, [navigate]);
+
   return (
     <PageLayout
       title="SETTINGS"
@@ -68,7 +72,7 @@ export default function Settings() {
             <div className="min-w-0" data-oid="tc3yanx">
               <button
                 type="button"
-                onClick={() => navigate("/files")}
+                onClick={handleBack}
                 className="font-brand mb-4 inline-flex items-center rounded-xl border border-[var(--settings-chip-border)] bg-[var(--settings-chip-bg)] px-3 py-2 text-[length:var(--settings-text-xs)] font-semibold tracking-wide text-[var(--settings-chip-text)] hover:bg-[var(--settings-chip-bg-hover)] hover:border-[var(--settings-chip-border-hover)]"
                 data-oid="li-ft82"
               >
@@ -77,7 +81,7 @@ export default function Settings() {
                   aria-hidden="true"
                   data-oid="mf5bp9k"
                 />
-                Back to Home
+                Back
               </button>
               <div className="flex items-center gap-3" data-oid="lvlcydi">
                 <div

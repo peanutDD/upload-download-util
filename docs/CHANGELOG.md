@@ -263,6 +263,27 @@ Jaeger UI 访问地址：http://localhost:16686
 - 质量评分：58 / 100
 - 变更文件：
   - `frontend/scripts/check-tauri-client-config.mjs`
+#### 🤖 Codex Auto-Fix (PR #15, round 1) — ts=1777980848
+
+- 安全扫描：通过
+- 质量评分：72 / 100
+- 变更文件：
+  - `frontend/src/components/files/useFileList.ts`
+  - `frontend/src/styles/tokens.css`
+
+#### 🤖 Codex Auto-Fix (PR #15, round 1) — ts=1777980174
+
+- 安全扫描：通过
+- 质量评分：72 / 100
+- 变更文件：
+  - `frontend/src/components/files/useFileList.ts`
+#### 🤖 Codex Auto-Fix (PR #14, round 1) — ts=1777975852
+
+- 安全扫描：通过
+- 质量评分：0 / 100
+- 变更文件：
+  - `frontend/src/components/layout/NavBar.tsx`
+  - `scripts/codex-cli/src/skills.rs`
 
 #### 🤖 Codex Auto-Fix (PR #14, round 1) — ts=1777972130
 
