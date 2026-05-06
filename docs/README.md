@@ -39,7 +39,8 @@ docs/
 │   ├── COMMERCIALIZATION_PLAN.md      # 商业化计划
 │   └── COMMERCIALIZATION_PLAN_RAW.md  # 商业化计划草稿
 └── references/                        # 参考资料
-    └── workflow-integration.md        # 工作流集成参考
+    ├── workflow-integration.md        # 工作流集成参考
+    └── 2026-05-07-root-directory-inventory.md # 根目录文件用途与清理判断
 ```
 
 ---
@@ -84,6 +85,7 @@ docs/
 |------|------|
 | `BACKEND_UPGRADE_2026-04-28.md` | 后端依赖升级详细指南 |
 | `UPGRADE_RECOMMENDATIONS.md` | 升级建议汇总（按优先级排序） |
+| `references/2026-05-07-root-directory-inventory.md` | 根目录文件/目录用途、是否可删、迁移建议 |
 
 ### 📜 约束与规范
 | 文档 | 描述 |
