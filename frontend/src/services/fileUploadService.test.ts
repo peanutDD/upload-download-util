@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import api from './api';
 import { fileUploadService } from './fileUploadService';
 import { sha256BlobHex, sha256FileHex } from '../utils/sha256';
+import { CHUNKED_UPLOAD } from '../constants';
 
 vi.mock('./api', () => ({
   default: {
@@ -34,9 +35,13 @@ function makeFile(name: string, type: string, body = 'hello', lastModified = 123
   return new File([body], name, { type, lastModified });
 }
 
+function flushPromises(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 describe('fileUploadService upload orchestration', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     mockedSha256.mockResolvedValue('a'.repeat(64));
     mockedBlobSha256.mockResolvedValue('b'.repeat(64));
     localStorage.clear();
@@ -142,6 +147,64 @@ describe('fileUploadService upload orchestration', () => {
         },
       }),
     );
+  });
+
+  it('starts the next chunk as soon as one parallel lane finishes', async () => {
+    const parallelChunks = CHUNKED_UPLOAD.PARALLEL_CHUNKS;
+    const totalParts = parallelChunks + 2;
+    const uploadedParts = new Set<number>();
+    const pendingPuts: Array<{ part: number; resolve: () => void }> = [];
+    const file = makeFile('movie.mp4', 'video/mp4', 'x'.repeat(totalParts));
+
+    apiPost
+      .mockResolvedValueOnce({
+        data: {
+          upload_id: 'upload-1',
+          chunk_size: 1,
+          total_parts: totalParts,
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          file: {
+            id: 'file-1',
+            filename: 'movie.mp4',
+          },
+        },
+      });
+    apiGet.mockImplementation(async () => ({
+      data: {
+        uploaded_parts: Array.from(uploadedParts),
+        total_parts: totalParts,
+      },
+    }));
+    apiPut.mockImplementation((url: string) => {
+      const part = Number(new URL(url, 'http://localhost').searchParams.get('part'));
+      return new Promise((resolve) => {
+        pendingPuts.push({
+          part,
+          resolve: () => {
+            uploadedParts.add(part);
+            resolve({ data: { ok: true } });
+          },
+        });
+      });
+    });
+
+    const uploadPromise = fileUploadService.uploadFileChunked(file);
+    await vi.waitFor(() => expect(apiPut).toHaveBeenCalledTimes(parallelChunks));
+
+    pendingPuts[0].resolve();
+    await flushPromises();
+
+    expect(apiPut).toHaveBeenCalledTimes(parallelChunks + 1);
+
+    while (pendingPuts.length > 0) {
+      const next = pendingPuts.shift();
+      next?.resolve();
+      await flushPromises();
+    }
+    await uploadPromise;
   });
 
   it('resumes a persisted chunked upload session instead of creating a new one', async () => {

@@ -43,8 +43,8 @@ export const CHUNKED_UPLOAD = {
   THRESHOLD: 2 * 1024 * 1024,
   // 最大重试次数
   MAX_RETRIES: 5,
-  // 并行上传的块数（弱网降并发更稳）
-  PARALLEL_CHUNKS: 2,
+  // 并行上传的块数（bounded worker pool，分片完成后立即补位）
+  PARALLEL_CHUNKS: 4,
   // 重试延迟（毫秒），指数退避
   RETRY_DELAY_BASE: 1000,
 } as const;
