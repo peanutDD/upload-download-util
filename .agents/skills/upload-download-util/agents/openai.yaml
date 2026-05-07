@@ -1,0 +1,6 @@
+interface:
+  display_name: "Upload Download Util"
+  short_description: "Repo-specific patterns and workflows for upload-download-util"
+  default_prompt: "Use the upload-download-util repo skill to follow existing architecture, testing, and workflow conventions."
+policy:
+  allow_implicit_invocation: true
