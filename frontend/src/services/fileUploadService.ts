@@ -373,10 +373,17 @@ export const fileUploadService = {
     };
 
     const uploaded = await refreshUploaded();
-    let completedChunks = uploaded.size;
+    const completedPartSet = new Set(uploaded);
+    let completedChunks = completedPartSet.size;
     const report = () => onProgress?.(
       totalParts === 0 ? 100 : Math.round((completedChunks / totalParts) * 100),
     );
+    const markPartUploaded = (part: number): void => {
+      if (completedPartSet.has(part)) return;
+      completedPartSet.add(part);
+      completedChunks++;
+      report();
+    };
     report();
 
     const uploadChunk = async (part: number): Promise<void> => {
@@ -390,17 +397,15 @@ export const fileUploadService = {
         try {
           throwIfAborted(options.signal);
           await this.chunkedUploadChunk(uploadId, part, blob, partSha256, options);
-          completedChunks++;
+          markPartUploaded(part);
           const existing = readChunkedSession(sessionKey);
           if (existing) writeChunkedSession(sessionKey, { ...existing, updatedAt: Date.now() });
-          report();
           return;
         } catch (e) {
           if (isAbortLikeError(e) || options.signal?.aborted) throw e;
           const currentUploaded = await refreshUploaded();
           if (currentUploaded.has(part)) {
-            completedChunks++;
-            report();
+            markPartUploaded(part);
             return;
           }
           if (attempt === CHUNKED_UPLOAD.MAX_RETRIES - 1) throw e;
@@ -415,16 +420,33 @@ export const fileUploadService = {
       const pendingParts = Array.from({ length: totalParts }, (_, i) => i + 1).filter(
         (part) => !uploaded.has(part),
       );
-      const chunks = [...pendingParts];
+      let nextPartIndex = 0;
+      let firstFailure: unknown = null;
+      const workerCount = Math.min(CHUNKED_UPLOAD.PARALLEL_CHUNKS, pendingParts.length);
 
-      while (chunks.length > 0) {
+      const uploadWorker = async (): Promise<void> => {
+        while (nextPartIndex < pendingParts.length && firstFailure === null) {
+          const part = pendingParts[nextPartIndex++];
+          if (part == null) return;
+          try {
+            throwIfAborted(options.signal);
+            await uploadChunk(part);
+          } catch (err) {
+            if (firstFailure === null) firstFailure = err;
+            throw err;
+          }
+        }
+      };
+
+      if (workerCount > 0) {
         throwIfAborted(options.signal);
-        const batch = chunks.splice(0, CHUNKED_UPLOAD.PARALLEL_CHUNKS);
-        const results = await Promise.allSettled(batch.map(uploadChunk));
-        const firstFailure = results.find(
+        const results = await Promise.allSettled(
+          Array.from({ length: workerCount }, () => uploadWorker()),
+        );
+        const firstRejected = results.find(
           (result): result is PromiseRejectedResult => result.status === 'rejected',
         );
-        if (firstFailure) throw firstFailure.reason;
+        if (firstRejected) throw firstRejected.reason;
       }
 
       const finalStatus = await refreshUploaded();

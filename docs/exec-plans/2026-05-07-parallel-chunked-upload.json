@@ -1,0 +1,29 @@
+{
+  "date": "2026-05-07",
+  "task": "parallel-chunked-upload",
+  "intent": "Replace batch-barrier chunked upload scheduling with bounded N-way worker-pool scheduling.",
+  "assumptions": [
+    "The backend chunk upload protocol remains unchanged.",
+    "The frontend controls per-file chunk concurrency through CHUNKED_UPLOAD.PARALLEL_CHUNKS.",
+    "Backend uploaded_parts updates are safe for concurrent chunk requests.",
+    "Resume, cancellation, retry, and part SHA-256 behavior must remain unchanged."
+  ],
+  "risks": [
+    "Excessive parallel chunks can amplify browser connection pressure and backend disk writes.",
+    "Concurrent progress updates can double count completed parts.",
+    "Failure handling must avoid completing after one worker lane fails."
+  ],
+  "dependencies": [
+    "frontend/src/services/fileUploadService.ts",
+    "frontend/src/constants/index.ts",
+    "frontend/src/services/fileUploadService.test.ts",
+    "docs/constraints/C-018-upload-queue-cancel-must-settle.md",
+    "docs/constraints/C-023-upload-resume-integrity.md"
+  ],
+  "verification": [
+    "npm run test -- src/services/fileUploadService.test.ts",
+    "npm run lint",
+    "npm run test",
+    "npm run build"
+  ]
+}
