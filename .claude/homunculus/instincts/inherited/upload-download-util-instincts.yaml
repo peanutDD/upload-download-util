@@ -1,0 +1,240 @@
+# Instincts generated from https://github.com/peanutDD/upload-download-util
+# Generated: 2026-05-07T07:01:46.038Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: upload-download-util-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Commit Length
+
+## Action
+
+Keep commit messages concise (~44 characters)
+
+## Evidence
+
+- Average commit message length: 44 chars
+- Based on 1 commits
+
+---
+id: upload-download-util-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Naming Files
+
+## Action
+
+Use kebab-case naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: kebab-case
+
+---
+id: upload-download-util-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: upload-download-util-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/peanutDD/upload-download-util
+---
+
+# Upload Download Util Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: upload-download-util-instinct-file-naming
+trigger: "When creating a new source file"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct File Naming
+
+## Action
+
+Name the file using kebab-case (e.g., upload-handler.rs)
+
+## Evidence
+
+- Pattern in namingConventions.files: kebab-case
+
+---
+id: upload-download-util-instinct-function-naming
+trigger: "When defining a new function"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Function Naming
+
+## Action
+
+Name the function using camelCase (e.g., processUpload)
+
+## Evidence
+
+- Pattern in namingConventions.functions: camelCase
+
+---
+id: upload-download-util-instinct-class-naming
+trigger: "When defining a new class or struct"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Class Naming
+
+## Action
+
+Name the class/struct using PascalCase (e.g., UploadManager)
+
+## Evidence
+
+- Pattern in namingConventions.classes: PascalCase
+
+---
+id: upload-download-util-instinct-constant-naming
+trigger: "When declaring a constant"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Constant Naming
+
+## Action
+
+Name the constant using SCREAMING_SNAKE_CASE (e.g., MAX_FILE_SIZE)
+
+## Evidence
+
+- Pattern in namingConventions.constants: SCREAMING_SNAKE_CASE
+
+---
+id: upload-download-util-instinct-import-style
+trigger: "When importing modules"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Import Style
+
+## Action
+
+Use relative imports
+
+## Evidence
+
+- Pattern in importStyle: relative
+
+---
+id: upload-download-util-instinct-export-style
+trigger: "When exporting functions or types"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Export Style
+
+## Action
+
+Use named exports
+
+## Evidence
+
+- Pattern in exportStyle: named
+
+---
+id: upload-download-util-instinct-test-location
+trigger: "When adding new tests"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Test Location
+
+## Action
+
+Place tests in the same file as the code (mixed test location)
+
+## Evidence
+
+- Pattern in architecture.testLocation: mixed
+
+---
+id: upload-download-util-instinct-commit-format
+trigger: "When writing a commit message"
+confidence: 0.8
+domain: git
+source: repo-analysis
+source_repo: peanutDD/upload-download-util
+---
+
+# Upload Download Util Instinct Commit Format
+
+## Action
+
+Use a freeform commit message without a required prefix
+
+## Evidence
+
+- Pattern in commits.type: freeform
+- No prefixes detected
+- Example: Clarify Medium review items in auto-fix loop
+
