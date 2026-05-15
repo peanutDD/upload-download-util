@@ -238,6 +238,11 @@ fn codex_auto_fix_passes_review_json_to_auto_fix() {
         workflow.contains("--review-json \"$REVIEW_JSON_PATH\""),
         "workflow should drive pr-auto-fix from the validated JSON input"
     );
+    assert!(
+        workflow.contains("printf '%s\\n' \"$RESULT\" > /tmp/codex-result.json")
+            && workflow.contains("CODEX_RESULT_PATH=/tmp/codex-result.json"),
+        "workflow should persist pr-auto-fix JSON so the state machine can publish the exact Gemini issue/status table"
+    );
 }
 
 #[test]
@@ -489,6 +494,29 @@ fn state_script_names_medium_and_medium_plus_as_pending_scope() {
     assert!(
         !script.contains("medium+ review items"),
         "state labels must not narrow the loop to Medium+ only"
+    );
+}
+
+#[test]
+fn relaxed_clear_posts_review_status_table() {
+    let script =
+        fs::read_to_string(workflow_script()).expect("workflow state script should be readable");
+
+    assert!(
+        script.contains("relaxed_review_status_comment"),
+        "relaxed clear should build a fresh review status comment instead of only pointing to older comments"
+    );
+    assert!(
+        script.contains("CODEX_RESULT_PATH") && script.contains(".issue_statuses // []"),
+        "relaxed clear should read pr-auto-fix issue_statuses from the persisted result JSON"
+    );
+    assert!(
+        script.contains("| # | 严重级别 | 位置 | Gemini 问题 | Codex 状态 | 解决方案/说明 |"),
+        "relaxed clear comments should include a visible Gemini issue/solution table"
+    );
+    assert!(
+        script.contains("宽松模式只表示这些问题不再阻塞自动闭环，不代表每一项都已代码修复"),
+        "relaxed clear must explain that green automation does not mean every Gemini finding was fixed"
     );
 }
 

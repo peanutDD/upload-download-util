@@ -405,6 +405,8 @@ jobs:
             "${REVIEW_ARGS[@]}" \
             --max-rounds ${{ env.MAX_ROUNDS }} \
             --yes)
+          printf '%s\n' "$RESULT" > /tmp/codex-result.json
+          echo "CODEX_RESULT_PATH=/tmp/codex-result.json" >> "$GITHUB_ENV"
 
           echo "skill_result<<EOF" >> "$GITHUB_OUTPUT"
           echo "$RESULT" >> "$GITHUB_OUTPUT"
