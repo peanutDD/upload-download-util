@@ -184,6 +184,29 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          prepare_reused_workspace() {
+            if [[ ! -d "${workspace}/.git" ]]; then
+              return 0
+            fi
+
+            local workspace_real=""
+            local seed_real=""
+            workspace_real="$(cd "${workspace}" && pwd -P)"
+            if [[ -d "${seed}" ]]; then
+              seed_real="$(cd "${seed}" && pwd -P)"
+            fi
+
+            if [[ -n "${seed_real}" && "${workspace_real}" == "${seed_real}" ]]; then
+              echo "bootstrap_status=blocked reason=workspace_matches_seed"
+              echo "::error::Cannot clean reused workspace because workspace path matches CODEX_LOCAL_REPO_SEED: ${workspace_real}"
+              exit 1
+            fi
+
+            log_bootstrap local "cleaning reused workspace before checkout"
+            git -C "${workspace}" reset --hard
+            git -C "${workspace}" clean -ffdx
+          }
+
           hydrate_from_local_sources() {
             if is_bare_mirror "${mirror}"; then
               log_bootstrap local "hydrating from bare mirror ${mirror}"
@@ -201,6 +224,7 @@ jobs:
           }
 
           exact_head=false
+          prepare_reused_workspace
           hydrate_from_local_sources
           if git cat-file -e "${HEAD_SHA}^{commit}" 2>/dev/null; then
             git checkout -B "${HEAD_REF}" "${HEAD_SHA}"

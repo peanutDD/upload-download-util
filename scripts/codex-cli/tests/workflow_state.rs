@@ -380,6 +380,22 @@ fn codex_auto_fix_bootstraps_pr_head_without_git_https_checkout() {
         workflow.contains("hydrate_from_local_sources"),
         "workflow should try to hydrate missing PR head commits from local sources before GitHub tarballs"
     );
+    let clean_index = workflow
+        .find("prepare_reused_workspace")
+        .expect("workflow should define reused workspace cleanup before checkout");
+    let hydrate_index = workflow
+        .find("hydrate_from_local_sources")
+        .expect("workflow should hydrate from local sources");
+    assert!(
+        clean_index < hydrate_index
+            && workflow.contains("git reset --hard")
+            && workflow.contains("git clean -ffdx"),
+        "self-hosted runner workspaces must be cleaned before checkout so stale local edits cannot block PR head hydration"
+    );
+    assert!(
+        workflow.contains("workspace path matches CODEX_LOCAL_REPO_SEED"),
+        "workflow should refuse to clean the local seed repository if workspace/seed are accidentally the same path"
+    );
     assert!(
         workflow.contains("headRefOid") && workflow.contains("headRefName"),
         "workflow should resolve the exact PR head branch and SHA through the GitHub API"
