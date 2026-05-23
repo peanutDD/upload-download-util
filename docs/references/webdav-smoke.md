@@ -12,6 +12,8 @@ Expected protocol invariants:
 
 - `OPTIONS /dav` advertises `DAV: 1, 2`.
 - Locked resources reject writes without a matching `If` or `Lock-Token`.
+- Lock conflict lookup/storage errors fail closed instead of allowing writes through.
+- Collection `COPY`/`MOVE` into the source collection or any descendant returns `409 Conflict`.
 - Large downloads and Range requests stream from storage.
 - API tokens marked read-only cannot perform mutating WebDAV methods.
 
@@ -35,3 +37,24 @@ Local client availability:
 - `rclone`: not installed in this environment.
 - `cadaver`: not installed in this environment.
 - macOS Finder and iOS Files: not exercised from this headless Codex run; still require manual UI smoke on a reachable build before final release signoff.
+
+## 2026-05-23 PR #32 Closeout Smoke
+
+Automated curl smoke passed against `http://127.0.0.1:3019/dav` using a freshly created WebDAV-enabled read/write API token.
+
+Evidence directory: `docs/evidence/webdav-smoke-20260523-pr32-closeout/`
+
+Captured evidence:
+
+- `options.txt`: `OPTIONS /dav` advertised `DAV: 1, 2` and `LOCK, UNLOCK`.
+- `propfind-depth-1.xml`: `Depth: 1` returned the smoke collection and uploaded file.
+- `range.txt`: suffix Range returned `206 Partial Content`, `Content-Range: bytes 13-18/19`, and the expected `smoke` body.
+- `lock-response.txt`: `LOCK` returned a persisted `opaquelocktoken`.
+- `locked-write-status.txt`: write without the lock token returned `423 Locked`; write with `If: (<token>)` then succeeded.
+
+Local client availability:
+
+- `curl`: available and passed.
+- `rclone`: not installed in this environment.
+- `cadaver`: not installed in this environment.
+- macOS Finder and iOS Files: release-candidate smoke items, not PR #32 merge blockers.

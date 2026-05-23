@@ -6,7 +6,7 @@ pub(super) fn snippet<const N: usize>(query: &str, parts: [&str; N]) -> String {
             return part
                 .chars()
                 .skip(start)
-                .take(match_start - start + query.chars().count() + 96)
+                .take((match_start - start + query.chars().count() + 96).min(160))
                 .collect();
         }
     }
@@ -52,6 +52,17 @@ mod tests {
     fn snippet_prefers_matching_text_and_falls_back_to_first_content() {
         assert!(snippet("zebra", ["", "invoice zebra-445"]).contains("zebra-445"));
         assert_eq!(snippet("missing", ["abcdef", ""]), "abcdef");
+    }
+
+    #[test]
+    fn snippet_is_utf8_safe_and_bounded_for_long_queries() {
+        let query = "界".repeat(240);
+        let content = format!("prefix {query} suffix");
+
+        let result = snippet(&query, [&content]);
+
+        assert!(result.chars().count() <= 160);
+        assert!(std::str::from_utf8(result.as_bytes()).is_ok());
     }
 
     #[test]

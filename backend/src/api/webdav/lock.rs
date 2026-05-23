@@ -20,6 +20,7 @@ const DEFAULT_LOCK_TIMEOUT_SECS: i64 = 600;
 const MAX_LOCK_TIMEOUT_SECS: i64 = 3600;
 
 pub(super) type LockDiscoveryByPath = HashMap<String, String>;
+type LockConflictRow = (String, String, String);
 
 pub(super) async fn lock_path(
     state: &AppState,
@@ -276,7 +277,7 @@ pub(super) async fn lock_conflicts(
 ) -> bool {
     let request_tokens = request_lock_tokens(headers);
     let path = lock_key(segments);
-    let rows: Vec<(String, String, String)> = sqlx::query_as(
+    let rows = sqlx::query_as::<_, LockConflictRow>(
         r#"
         SELECT path, token, depth
         FROM webdav_locks
@@ -292,16 +293,34 @@ pub(super) async fn lock_conflicts(
     .bind(user_id)
     .bind(&path)
     .fetch_all(&state.pool)
-    .await
-    .unwrap_or_default();
-    let conflict = rows.into_iter().any(|(locked_path, token, depth)| {
-        lock_applies_to_path(&locked_path, &depth, &path)
-            && !request_tokens.iter().any(|t| t == &token)
-    });
+    .await;
+    let conflict = lock_rows_have_conflict(rows, &request_tokens, &path);
     if conflict {
         counter!("webdav_lock_conflict_total").increment(1);
     }
     conflict
+}
+
+fn lock_rows_have_conflict(
+    rows: Result<Vec<LockConflictRow>, sqlx::Error>,
+    request_tokens: &[String],
+    request_path: &str,
+) -> bool {
+    match rows {
+        Ok(rows) => rows.into_iter().any(|(locked_path, token, depth)| {
+            lock_applies_to_path(&locked_path, &depth, request_path)
+                && !request_tokens.iter().any(|t| t == &token)
+        }),
+        Err(error) => {
+            tracing::error!(
+                error = %error,
+                request_path,
+                "webdav lock lookup failed; failing closed"
+            );
+            counter!("webdav_lock_lookup_error_total").increment(1);
+            true
+        }
+    }
 }
 
 fn lock_applies_to_path(locked_path: &str, depth: &str, request_path: &str) -> bool {
@@ -309,4 +328,20 @@ fn lock_applies_to_path(locked_path: &str, depth: &str, request_path: &str) -> b
         || locked_path.starts_with(&format!("{request_path}/"))
         || (depth.eq_ignore_ascii_case("infinity")
             && request_path.starts_with(&format!("{locked_path}/")))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn lock_lookup_errors_fail_closed() {
+        let request_tokens = Vec::new();
+
+        assert!(lock_rows_have_conflict(
+            Err(sqlx::Error::RowNotFound),
+            &request_tokens,
+            "/locked.txt"
+        ));
+    }
 }

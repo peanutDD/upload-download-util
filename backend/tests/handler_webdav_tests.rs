@@ -1050,6 +1050,44 @@ async fn webdav_copy_folder_recursively_copies_children() {
 
 #[tokio::test]
 #[serial(webdav_handler_db)]
+async fn webdav_copy_folder_into_own_descendant_is_conflict() {
+    init_test_env();
+    let pool = common::create_test_pool().await;
+    cleanup_test_data(&pool).await;
+    let app = build_test_app(&pool).await;
+    let (_, _, _, basic) = create_webdav_token(&pool, "webdav_copy_descendant").await;
+
+    let response = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("MKCOL")
+                .uri("/dav/archive")
+                .header(header::AUTHORIZATION, &basic)
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::CREATED);
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("COPY")
+                .uri("/dav/archive")
+                .header(header::AUTHORIZATION, &basic)
+                .header("destination", "http://localhost/dav/archive/nested-copy")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::CONFLICT);
+}
+
+#[tokio::test]
+#[serial(webdav_handler_db)]
 async fn api_file_list_omits_missing_local_storage_records() {
     init_test_env();
     let pool = common::create_test_pool().await;
@@ -1286,6 +1324,44 @@ async fn webdav_move_accepts_relative_destination_in_source_collection() {
         .await
         .unwrap();
     assert_eq!(response.status(), StatusCode::OK);
+}
+
+#[tokio::test]
+#[serial(webdav_handler_db)]
+async fn webdav_move_folder_into_own_descendant_is_conflict() {
+    init_test_env();
+    let pool = common::create_test_pool().await;
+    cleanup_test_data(&pool).await;
+    let app = build_test_app(&pool).await;
+    let (_, _, _, basic) = create_webdav_token(&pool, "webdav_move_descendant").await;
+
+    let response = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("MKCOL")
+                .uri("/dav/archive")
+                .header(header::AUTHORIZATION, &basic)
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::CREATED);
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("MOVE")
+                .uri("/dav/archive")
+                .header(header::AUTHORIZATION, &basic)
+                .header("destination", "http://localhost/dav/archive/nested")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::CONFLICT);
 }
 
 #[tokio::test]

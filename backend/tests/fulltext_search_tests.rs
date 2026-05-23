@@ -99,6 +99,11 @@ fn ocr_extractor_skips_when_disabled_or_dependency_missing() {
     .unwrap();
     assert_eq!(missing.status, OcrStatus::DependencyMissing);
     assert!(missing.text.is_empty());
+
+    let unsupported =
+        OcrExtractor::extract(b"plain text", "text/plain", "note.txt", true, "tesseract").unwrap();
+    assert_eq!(unsupported.status, OcrStatus::Unsupported);
+    assert!(unsupported.text.is_empty());
 }
 
 #[test]
@@ -298,6 +303,42 @@ async fn delete_worker_removes_file_from_fulltext_index() {
 
 #[tokio::test]
 #[serial(fulltext_search_db)]
+async fn fulltext_worker_completes_when_ocr_dependency_is_missing() {
+    common::init_test_env();
+    let pool = common::create_test_pool().await;
+    common::cleanup_test_data(&pool).await;
+
+    let index_dir = tempfile::tempdir().unwrap();
+    let (app, state) = build_fulltext_app(&pool, index_dir.path(), true).await;
+    let (_user_id, token) = common::app::login_and_get_token(&pool, "fulltext_ocr_missing").await;
+    let file_id = upload_file(
+        app.clone(),
+        &token,
+        "scan.png",
+        "image/png",
+        b"not a real image",
+    )
+    .await;
+
+    run_fulltext_index_worker(&state).await.unwrap();
+
+    let task: (String, Option<String>) =
+        sqlx::query_as("SELECT status, last_error FROM background_tasks WHERE task_type = 'search_index_file' AND dedupe_key = $1")
+            .bind(format!("search:{file_id}"))
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+    assert_eq!(task.0, "succeeded");
+    assert!(task.1.is_none());
+
+    let json = search_fulltext(app, &token, "scan").await;
+    assert_eq!(json["count"], 1);
+    assert_eq!(json["files"][0]["file"]["id"], file_id.to_string());
+    assert_eq!(json["files"][0]["match_source"], "filename");
+}
+
+#[tokio::test]
+#[serial(fulltext_search_db)]
 async fn ocr_status_endpoint_reports_runtime_dependencies() {
     common::init_test_env();
     let pool = common::create_test_pool().await;
@@ -345,10 +386,26 @@ async fn build_fulltext_app(
 }
 
 async fn upload_text(app: Router, token: &str, filename: &str, text: &str) -> Uuid {
+    upload_file(app, token, filename, "text/plain", text.as_bytes()).await
+}
+
+async fn upload_file(
+    app: Router,
+    token: &str,
+    filename: &str,
+    content_type: &str,
+    data: &[u8],
+) -> Uuid {
     let boundary = "fulltext-boundary";
-    let body = format!(
-        "--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; filename=\"{filename}\"\r\nContent-Type: text/plain\r\n\r\n{text}\r\n--{boundary}--\r\n"
+    let mut body = Vec::new();
+    body.extend_from_slice(
+        format!(
+            "--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; filename=\"{filename}\"\r\nContent-Type: {content_type}\r\n\r\n"
+        )
+        .as_bytes(),
     );
+    body.extend_from_slice(data);
+    body.extend_from_slice(format!("\r\n--{boundary}--\r\n").as_bytes());
     let (auth_name, auth_value) = common::app::bearer_auth_header(token);
     let response = app
         .oneshot(

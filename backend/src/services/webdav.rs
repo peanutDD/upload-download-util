@@ -66,6 +66,18 @@ pub enum WebDavMoveOutcome {
     NoContent,
 }
 
+fn destination_is_same_or_descendant(
+    source_segments: &[String],
+    destination_segments: &[String],
+) -> bool {
+    !source_segments.is_empty()
+        && destination_segments.len() >= source_segments.len()
+        && source_segments
+            .iter()
+            .zip(destination_segments.iter())
+            .all(|(source, destination)| source == destination)
+}
+
 impl<'a> WebDavService<'a> {
     pub fn new(state: &'a AppState) -> Self {
         Self { state }
@@ -371,6 +383,9 @@ impl<'a> WebDavService<'a> {
             .find_folder(principal.user_id, source_folder_id, &source_name)
             .await
             .ok_or(WebDavError::NotFound)?;
+        if destination_is_same_or_descendant(source_segments, destination_segments) {
+            return Err(WebDavError::Conflict);
+        }
         if self
             .destination_exists(principal.user_id, dest_folder_id, &dest_name)
             .await
@@ -423,6 +438,15 @@ impl<'a> WebDavService<'a> {
             .await
             .map_err(|_| WebDavError::Conflict)?;
 
+        let source_folder = self
+            .find_folder(principal.user_id, source_folder_id, &source_name)
+            .await;
+        if source_folder.is_some()
+            && destination_is_same_or_descendant(source_segments, destination_segments)
+        {
+            return Err(WebDavError::Conflict);
+        }
+
         if self
             .destination_exists(principal.user_id, dest_folder_id, &dest_name)
             .await
@@ -444,10 +468,7 @@ impl<'a> WebDavService<'a> {
             return Ok(());
         }
 
-        let folder = self
-            .find_folder(principal.user_id, source_folder_id, &source_name)
-            .await
-            .ok_or(WebDavError::NotFound)?;
+        let folder = source_folder.ok_or(WebDavError::NotFound)?;
         self.copy_folder_tree(principal.user_id, folder.id, dest_folder_id, dest_name)
             .await?;
         self.bump_files_cache(principal.user_id).await;

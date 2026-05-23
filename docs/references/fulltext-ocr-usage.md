@@ -1,6 +1,6 @@
 # 全文搜索与 OCR 使用说明
 
-最后更新：2026-05-14
+最后更新：2026-05-23
 
 ## 概述
 
@@ -87,7 +87,7 @@ curl -H "Authorization: Bearer $TOKEN" \
 | `ready` | Tantivy 索引有命中结果 |
 | `fallback` | Tantivy 无命中，回退到文件名搜索 |
 
-回退搜索只匹配当前文件夹内的 `original_filename`，不会同步读取文件内容。
+回退搜索只匹配当前文件夹内的 `original_filename`，不会同步读取文件内容。搜索摘要 `snippet` 按 UTF-8 字符边界生成，并限制在 160 个字符以内。
 
 ## 全文搜索原理
 
@@ -264,7 +264,7 @@ OCR 状态：
 | `failed` | 命令存在但执行失败或无有效文本 |
 | `completed` | 成功提取文本 |
 
-缺依赖时不会导致上传、全文搜索或 worker 循环崩掉，只会记录状态并跳过 OCR 文本。
+OCR 是后台索引的 best-effort 子步骤。`disabled`、`unsupported`、`dependency_missing` 等状态会通过日志和 `fulltext_ocr_status_total` 指标可观测，但不会让 `search_index_file` worker 失败；文件仍会用文件名和可提取普通文本写入全文索引。
 
 ## 普通文件内容提取范围
 
