@@ -185,7 +185,7 @@ pub(super) async fn get_file(
     );
     headers.insert(
         header::CONTENT_LENGTH,
-        HeaderValue::from_str(&(end.saturating_sub(start) + 1).to_string()).unwrap(),
+        HeaderValue::from_str(&len.to_string()).unwrap(),
     );
     if status == StatusCode::PARTIAL_CONTENT {
         headers.insert(

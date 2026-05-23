@@ -573,6 +573,63 @@ async fn webdav_suffix_range_returns_tail_bytes() {
 
 #[tokio::test]
 #[serial(webdav_handler_db)]
+async fn webdav_empty_file_get_and_head_report_zero_content_length() {
+    init_test_env();
+    let pool = common::create_test_pool().await;
+    cleanup_test_data(&pool).await;
+    let app = build_test_app(&pool).await;
+    let (_, _, _, basic) = create_webdav_token(&pool, "webdav_empty_file_length").await;
+
+    let response = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method(Method::PUT)
+                .uri("/dav/empty.txt")
+                .header(header::AUTHORIZATION, &basic)
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::CREATED);
+
+    let response = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method(Method::GET)
+                .uri("/dav/empty.txt")
+                .header(header::AUTHORIZATION, &basic)
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.headers().get(header::CONTENT_LENGTH).unwrap(), "0");
+    let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    assert!(body.is_empty());
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method(Method::HEAD)
+                .uri("/dav/empty.txt")
+                .header(header::AUTHORIZATION, &basic)
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.headers().get(header::CONTENT_LENGTH).unwrap(), "0");
+    let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    assert!(body.is_empty());
+}
+
+#[tokio::test]
+#[serial(webdav_handler_db)]
 async fn webdav_lock_blocks_write_without_matching_token() {
     init_test_env();
     let pool = common::create_test_pool().await;
