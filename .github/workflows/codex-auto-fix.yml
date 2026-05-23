@@ -26,21 +26,7 @@ env:
   CODEX_AGENT_MODEL: gpt-5.5
   CODEX_AUTO_FIX_VERIFY_COMMANDS: |
     set -euo pipefail
-    if git status --short -- frontend/ | grep -q .; then
-      (
-        cd frontend
-        npm ci --ignore-scripts
-        npm run lint
-        npx --no-install tsc -b --noEmit
-      )
-    fi
-    if git status --short -- backend/ | grep -q .; then
-      (
-        cd backend
-        cargo fmt --all -- --check
-        cargo clippy --all-targets --all-features -- -D warnings
-      )
-    fi
+    bash scripts/codex-cli/tools/pre-push-verify.sh --changed
 
 concurrency:
   group: codex-auto-fix-pr-${{ github.event.issue.number || github.event.pull_request.number || github.run_id }}

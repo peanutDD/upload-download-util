@@ -296,17 +296,20 @@ fn codex_auto_fix_has_coherent_runtime_budget() {
 fn codex_auto_fix_runs_frontend_pre_push_validation() {
     let workflow = fs::read_to_string(codex_auto_fix_workflow())
         .expect("codex auto-fix workflow should be readable");
+    let script = fs::read_to_string(repo_path("scripts/codex-cli/tools/pre-push-verify.sh"))
+        .expect("shared pre-push verify script should be readable");
 
     assert!(
         workflow.contains("CODEX_AUTO_FIX_VERIFY_COMMANDS:"),
         "codex-fix must define pre-push verification so generated patches are checked before publish"
     );
     assert!(
-        workflow.contains("git status --short -- frontend/")
-            && workflow.contains("set -euo pipefail")
-            && workflow.contains("npm ci --ignore-scripts")
-            && workflow.contains("npm run lint")
-            && workflow.contains("npx --no-install tsc -b --noEmit"),
+        workflow.contains("bash scripts/codex-cli/tools/pre-push-verify.sh --changed")
+            && script.contains("git status --short -- frontend/")
+            && script.contains("set -euo pipefail")
+            && script.contains("npm ci --ignore-scripts")
+            && script.contains("npm run lint")
+            && script.contains("npx --no-install tsc -b --noEmit"),
         "frontend auto-fix changes must run fail-fast install, lint, and typecheck before commit/push without compiling native install scripts"
     );
 }
@@ -315,13 +318,67 @@ fn codex_auto_fix_runs_frontend_pre_push_validation() {
 fn codex_auto_fix_runs_backend_pre_push_format_validation() {
     let workflow = fs::read_to_string(codex_auto_fix_workflow())
         .expect("codex auto-fix workflow should be readable");
+    let script = fs::read_to_string(repo_path("scripts/codex-cli/tools/pre-push-verify.sh"))
+        .expect("shared pre-push verify script should be readable");
 
     assert!(
-        workflow.contains("git status --short -- backend/")
-            && workflow.contains("cd backend")
-            && workflow.contains("cargo fmt --all -- --check")
-            && workflow.contains("cargo clippy --all-targets --all-features -- -D warnings"),
+        workflow.contains("bash scripts/codex-cli/tools/pre-push-verify.sh --changed")
+            && script.contains("git status --short -- backend/")
+            && script.contains("cd backend")
+            && script.contains("cargo fmt --all -- --check")
+            && script.contains("cargo clippy --all-targets --all-features -- -D warnings"),
         "backend auto-fix changes must run cargo fmt and clippy before commit/push because GitHub API publish does not trigger CI"
+    );
+}
+
+#[test]
+fn codex_auto_fix_uses_shared_pre_push_verify_script() {
+    let workflow = fs::read_to_string(codex_auto_fix_workflow())
+        .expect("codex auto-fix workflow should be readable");
+
+    assert!(
+        workflow.contains("bash scripts/codex-cli/tools/pre-push-verify.sh --changed"),
+        "codex-fix should delegate publish verification to the shared script used by local git hooks"
+    );
+}
+
+#[test]
+fn codex_shared_pre_push_verify_script_covers_backend_and_frontend() {
+    let script = fs::read_to_string(repo_path("scripts/codex-cli/tools/pre-push-verify.sh"))
+        .expect("shared pre-push verify script should be readable");
+
+    assert!(
+        script.contains("git status --short -- frontend/")
+            && script.contains("npm ci --ignore-scripts")
+            && script.contains("npm run lint")
+            && script.contains("npx --no-install tsc -b --noEmit"),
+        "shared verify script must preserve the frontend auto-fix validation contract"
+    );
+    assert!(
+        script.contains("git status --short -- backend/")
+            && script.contains("cargo fmt --all -- --check")
+            && script.contains("cargo clippy --all-targets --all-features -- -D warnings"),
+        "shared verify script must preserve the backend auto-fix validation contract"
+    );
+}
+
+#[test]
+fn codex_git_hook_template_and_installer_delegate_to_shared_verify_script() {
+    let hook = fs::read_to_string(repo_path("scripts/git-hooks/pre-push"))
+        .expect("versioned pre-push hook template should be readable");
+    let installer = fs::read_to_string(repo_path("scripts/git-hooks/install.sh"))
+        .expect("git hook installer should be readable");
+
+    assert!(
+        hook.contains("SKIP_CODEX_VERIFY")
+            && hook.contains("scripts/codex-cli/tools/pre-push-verify.sh --changed"),
+        "local pre-push hook must support an explicit emergency bypass and otherwise delegate to the shared verifier"
+    );
+    assert!(
+        installer.contains(".git/hooks/pre-push")
+            && installer.contains("scripts/git-hooks/pre-push")
+            && installer.contains("chmod +x"),
+        "installer must copy the versioned hook template into the local untracked git hooks directory"
     );
 }
 
@@ -549,6 +606,12 @@ fn workflow_script() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(".github/scripts/codex-auto-fix-state.sh")
+}
+
+fn repo_path(path: &str) -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .join(path)
 }
 
 fn codex_auto_fix_workflow() -> PathBuf {

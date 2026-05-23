@@ -1,0 +1,14 @@
+HTTP/1.1 200 OK
+content-type: application/xml; charset=utf-8
+lock-token: <opaquelocktoken:f2901697-9ed1-43b5-8d69-062ea90a0789>
+content-length: 359
+vary: origin, access-control-request-method, access-control-request-headers
+access-control-allow-origin: *
+dav: 1, 2
+ms-author-via: DAV
+allow: OPTIONS, PROPFIND, MKCOL, PUT, GET, HEAD, DELETE, MOVE, COPY, LOCK, UNLOCK
+x-trace-id: 017f91e1-1936-4d64-8701-93c2e8c4af0d
+x-request-id: 017f91e1-1936-4d64-8701-93c2e8c4af0d
+date: Sat, 23 May 2026 16:24:10 GMT
+
+<?xml version="1.0" encoding="utf-8"?><D:prop xmlns:D="DAV:"><D:lockdiscovery><D:activelock><D:locktype><D:write/></D:locktype><D:lockscope><D:exclusive/></D:lockscope><D:depth>0</D:depth><D:timeout>Second-600</D:timeout><D:locktoken><D:href>opaquelocktoken:f2901697-9ed1-43b5-8d69-062ea90a0789</D:href></D:locktoken></D:activelock></D:lockdiscovery></D:prop>
