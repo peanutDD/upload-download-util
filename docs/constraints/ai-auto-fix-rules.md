@@ -12,7 +12,7 @@
 
 ## 2. 操作安全 (Operational Safety)
 1. **Git 隔离**: 所有自动修复必须在独立的临时补丁中尝试应用，失败则立即回滚，严禁强制推送 (`push -f`)。
-2. **Commit 规范**: 自动修复提交必须触发 CI，禁止使用 `[skip ci]`。为避免重复 Gemini 请求，`gemini-review-kickoff` 必须识别 `codex auto-fix` 提交并跳过，由 `codex-auto-fix` 状态机负责请求下一轮 Review。
+2. **Commit 规范**: 自动修复提交必须触发 CI，禁止使用 `[skip ci]`。为避免重复 Gemini 请求，`gemini-review-kickoff` 只允许跳过 GitHub Actions `codex-auto-fix` 状态机生成的精确前缀 `🤖 codex auto-fix:`；本地/Desktop Codex 发布必须使用 `🤖 codex local auto-fix:` 或提供等价 PR 评论/status-table 流程，不能冒充 workflow-owned 提交。
 3. **轮次上限**: 单个 PR 的自动修复轮次严禁超过 `MAX_ROUNDS` (默认为 2)，防止 LLM 陷入无效的自纠缠循环。
 4. **未修复必须解释**: 任何 `Medium`、`Medium+`、`High`、`Critical` 问题如果没有自动修复，必须在 PR 评论或最终 JSON 的 `issue_statuses` / `pending_explanations` 中写明原因。
 5. **补丁失败重试**: `git apply` 失败时不得立即放弃；必须把失败补丁和最新源码回传给模型，重试生成一次更小的 unified diff。重试仍失败才进入未修复说明。

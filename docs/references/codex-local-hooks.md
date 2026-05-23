@@ -43,3 +43,13 @@ to the untracked local Git hook path:
 ## Why Pre-Push
 
 Rust format and clippy checks are too expensive for every commit. `pre-push` protects the remote branch while still allowing small local commits during development.
+
+## Local Auto-Fix Commit Prefix
+
+Local/Desktop Codex publishes use `🤖 codex local auto-fix:` by default. The
+GitHub Actions `codex-auto-fix` workflow is the only path that opts into
+`🤖 codex auto-fix:` with `CODEX_AUTO_FIX_WORKFLOW_OWNS_REVIEW=true`.
+
+This keeps `gemini-review-kickoff` from skipping local publishes: local commits
+trigger the normal PR `synchronize` review request unless they also implement
+and test an equivalent PR comment/status-table path.

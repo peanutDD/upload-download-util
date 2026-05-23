@@ -514,8 +514,23 @@ fn gemini_kickoff_only_skips_actual_auto_fix_commit_subjects() {
         "Gemini kickoff should only skip the exact auto-fix bot commit subject prefix"
     );
     assert!(
+        !workflow.contains("\"$LAST_COMMIT_MESSAGE\" == \"🤖 codex local auto-fix:\"*"),
+        "local Codex auto-fix commits must not be skipped by Gemini kickoff"
+    );
+    assert!(
         workflow.contains("GEMINI_REVIEW_REQUIRED: false"),
         "Gemini kickoff should request review without making missing Gemini responses a blocking check in relaxed mode"
+    );
+}
+
+#[test]
+fn codex_auto_fix_workflow_explicitly_owns_next_gemini_review() {
+    let workflow = fs::read_to_string(codex_auto_fix_workflow())
+        .expect("codex auto-fix workflow should be readable");
+
+    assert!(
+        workflow.contains("CODEX_AUTO_FIX_WORKFLOW_OWNS_REVIEW: true"),
+        "only the GitHub Actions auto-fix workflow should opt into the commit prefix that Gemini kickoff skips"
     );
 }
 

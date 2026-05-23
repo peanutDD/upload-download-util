@@ -423,10 +423,7 @@ pub fn commit_and_push_in(
     fixed_files: &[String],
     push: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let msg = format!(
-        "🤖 codex auto-fix: 修复 {} 个文件 (基于 Gemini Review)",
-        fixed_files.len()
-    );
+    let msg = auto_fix_commit_message(fixed_files.len());
 
     let safe_fixed_files = fixed_files
         .iter()
@@ -517,6 +514,23 @@ fn validate_git_pathspec_file(path: &str) -> Result<String, Box<dyn std::error::
 
 fn publish_via_github_api_only() -> bool {
     env_flag_enabled(std::env::var("CODEX_PUBLISH_VIA_GH_API").ok().as_deref())
+}
+
+fn auto_fix_commit_message(file_count: usize) -> String {
+    let prefix = if workflow_owns_next_gemini_review() {
+        "🤖 codex auto-fix"
+    } else {
+        "🤖 codex local auto-fix"
+    };
+    format!("{prefix}: 修复 {file_count} 个文件 (基于 Gemini Review)")
+}
+
+fn workflow_owns_next_gemini_review() -> bool {
+    env_flag_enabled(
+        std::env::var("CODEX_AUTO_FIX_WORKFLOW_OWNS_REVIEW")
+            .ok()
+            .as_deref(),
+    )
 }
 
 fn env_flag_enabled(value: Option<&str>) -> bool {
@@ -1056,6 +1070,18 @@ fn parse_skill_md(text: &str) -> (Option<String>, Option<String>, Option<String>
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::{Mutex, OnceLock};
+
+    fn codex_env_lock() -> &'static Mutex<()> {
+        static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+        LOCK.get_or_init(|| Mutex::new(()))
+    }
+
+    fn lock_codex_env() -> std::sync::MutexGuard<'static, ()> {
+        codex_env_lock()
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+    }
 
     #[test]
     fn publish_via_github_api_flag_accepts_only_truthy_values() {
@@ -1351,6 +1377,7 @@ BODY
 
     #[test]
     fn commit_and_push_runs_configured_verify_commands_before_commit() {
+        let _env_guard = lock_codex_env();
         let repo = create_patch_test_repo("pre-push-verify");
         StdCommand::new("git")
             .arg("-C")
@@ -1408,6 +1435,123 @@ BODY
             "failed verification must prevent the auto-fix commit"
         );
         let _ = fs::remove_dir_all(&repo);
+    }
+
+    #[test]
+    fn commit_and_push_uses_local_prefix_by_default_so_gemini_kickoff_runs() {
+        let _env_guard = lock_codex_env();
+        let repo = create_patch_test_repo("local-auto-fix-prefix");
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["config", "user.email", "test@example.com"])
+            .output()
+            .unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["config", "user.name", "Test User"])
+            .output()
+            .unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["add", "src/lib.rs"])
+            .output()
+            .unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["commit", "-m", "initial"])
+            .output()
+            .unwrap();
+        fs::write(
+            repo.join("src/lib.rs"),
+            "pub fn value() -> i32 {\n    2\n}\n",
+        )
+        .unwrap();
+
+        unsafe {
+            std::env::remove_var("CODEX_AUTO_FIX_WORKFLOW_OWNS_REVIEW");
+        }
+        let result = commit_and_push_in(repo.to_str().unwrap(), &["src/lib.rs".to_string()], false);
+
+        let head = checked_output(StdCommand::new("git").arg("-C").arg(&repo).args([
+            "log",
+            "--format=%s",
+            "-1",
+        ]))
+        .unwrap();
+        let subject = String::from_utf8_lossy(&head.stdout);
+        let _ = fs::remove_dir_all(&repo);
+
+        assert!(result.is_ok(), "result={result:?}");
+        assert!(
+            subject.starts_with("🤖 codex local auto-fix:"),
+            "local publish must not use the workflow-owned skip prefix: {subject}"
+        );
+        assert!(
+            !subject.starts_with("🤖 codex auto-fix:"),
+            "local publish would make gemini-review-kickoff skip incorrectly"
+        );
+    }
+
+    #[test]
+    fn commit_and_push_keeps_workflow_prefix_when_workflow_owns_review() {
+        let _env_guard = lock_codex_env();
+        let repo = create_patch_test_repo("workflow-auto-fix-prefix");
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["config", "user.email", "test@example.com"])
+            .output()
+            .unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["config", "user.name", "Test User"])
+            .output()
+            .unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["add", "src/lib.rs"])
+            .output()
+            .unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["commit", "-m", "initial"])
+            .output()
+            .unwrap();
+        fs::write(
+            repo.join("src/lib.rs"),
+            "pub fn value() -> i32 {\n    2\n}\n",
+        )
+        .unwrap();
+
+        unsafe {
+            std::env::set_var("CODEX_AUTO_FIX_WORKFLOW_OWNS_REVIEW", "true");
+        }
+        let result = commit_and_push_in(repo.to_str().unwrap(), &["src/lib.rs".to_string()], false);
+        unsafe {
+            std::env::remove_var("CODEX_AUTO_FIX_WORKFLOW_OWNS_REVIEW");
+        }
+
+        let head = checked_output(StdCommand::new("git").arg("-C").arg(&repo).args([
+            "log",
+            "--format=%s",
+            "-1",
+        ]))
+        .unwrap();
+        let subject = String::from_utf8_lossy(&head.stdout);
+        let _ = fs::remove_dir_all(&repo);
+
+        assert!(result.is_ok(), "result={result:?}");
+        assert!(
+            subject.starts_with("🤖 codex auto-fix:"),
+            "workflow auto-fix must keep the exact skip prefix: {subject}"
+        );
     }
 
     #[test]

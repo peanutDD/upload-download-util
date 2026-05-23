@@ -24,6 +24,7 @@ env:
   CODEX_AUTO_FIX_STRICT: false
   CODEX_AUTO_FIX_DIRECT_FULL_FILE: true
   CODEX_AGENT_MODEL: gpt-5.5
+  CODEX_AUTO_FIX_WORKFLOW_OWNS_REVIEW: true
   CODEX_AUTO_FIX_VERIFY_COMMANDS: |
     set -euo pipefail
     bash scripts/codex-cli/tools/pre-push-verify.sh --changed
