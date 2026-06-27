@@ -15,6 +15,9 @@ export interface FileMetadata {
   folder_id: string | null;
   created_at: string;
   deleted_at?: string | null;
+  search_snippet?: string;
+  match_source?: 'filename' | 'content' | 'ocr' | 'category';
+  search_score?: number;
 }
 
 /**

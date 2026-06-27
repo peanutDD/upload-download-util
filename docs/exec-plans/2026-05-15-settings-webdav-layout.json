@@ -1,0 +1,43 @@
+{
+  "task": "settings-webdav-layout",
+  "date": "2026-05-15",
+  "goal": "Remove Appearance from Settings and reorganize WebDAV Access into clearer connection, credential, setup, and client note groups.",
+  "assumptions": [
+    "Appearance means the Settings page ThemeSection block, not deleting the standalone theme component.",
+    "WebDAV behavior, URL shape, authentication model, and token creation flow stay unchanged.",
+    "Existing unrelated worktree changes are user-owned and must not be reverted."
+  ],
+  "risks": [
+    "Settings regression tests must be updated without weakening existing navigation behavior.",
+    "More WebDAV copy can feel busier unless grouped into clear panels.",
+    "Removing the Settings Appearance block must not remove theme store behavior."
+  ],
+  "dependencies": [
+    "frontend/src/pages/Settings.tsx",
+    "frontend/src/components/settings/WebDavAccessSection.tsx",
+    "frontend/src/components/settings/SettingsPageRegression.test.tsx",
+    "SettingsCard and settings semantic tokens"
+  ],
+  "steps": [
+    "Add failing Settings regressions for no Appearance section and the new WebDAV structure.",
+    "Remove ThemeSection from the Settings page render path.",
+    "Rebuild WebDavAccessSection into endpoint, credential, setup-step, and client-note groups.",
+    "Run focused frontend tests and lint/build checks as time allows.",
+    "Update quality score after verification.",
+    "Align the WebDAV desktop grid as equal-height paired rows while keeping mobile order readable.",
+    "Put the six Settings content cards below the title bar into a two-column desktop grid while keeping mobile single-column flow.",
+    "Keep the WebDAV card internals single-column inside the half-width desktop card so URL and labels remain readable.",
+    "Reorder the six Settings cards into three explicit desktop rows: Account/Security, WebDAV/API Tokens, OCR Status/Storage, with each row stretching left and right cards to the same height."
+  ],
+  "acceptance": [
+    "Settings no longer renders the Appearance card or theme option buttons.",
+    "WebDAV Access still shows /dav and never renders the current auth token.",
+    "WebDAV instructions are grouped by connection details, credentials, setup order, and client notes.",
+    "WebDAV card internals remain readable inside the half-width desktop card.",
+    "Settings Center title bar stays full-width above the six-card desktop grid.",
+    "The six Settings content cards use a two-column desktop layout and a single-column mobile layout.",
+    "The desktop row order is Account/Security, WebDAV Access/API Tokens, OCR Status/Storage.",
+    "Each desktop row stretches the left and right cards to equal height without making all rows the same height.",
+    "Focused Settings regression tests pass."
+  ]
+}

@@ -12,7 +12,7 @@ use uuid::Uuid;
 use crate::constants::DISK_RESERVE_UPLOAD;
 use crate::extractors::AuthenticatedUser;
 use crate::services::file::CreateFileFromPathInput;
-use crate::utils::{json_response, AppError};
+use crate::utils::{effective_file_mime_type, json_response, AppError};
 use crate::AppState;
 
 /// 上传文件（普通上传）
@@ -80,10 +80,7 @@ pub async fn upload_file_handler(
                 .ok_or_else(|| AppError::File("Missing filename".to_string()))?
                 .to_string();
 
-            let mime_type = field
-                .content_type()
-                .map(|s| s.to_string())
-                .unwrap_or_else(|| "application/octet-stream".to_string());
+            let mime_type = effective_file_mime_type(&filename, field.content_type());
 
             // -----------------------------------------------------------------
             // 临时文件

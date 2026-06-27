@@ -14,6 +14,9 @@ pub struct ApiToken {
     pub name: String,
     pub last_used_at: Option<DateTime<Utc>>,
     pub expires_at: Option<DateTime<Utc>>,
+    pub webdav_enabled: bool,
+    pub webdav_read_only: bool,
+    pub webdav_root_folder_id: Option<Uuid>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }

@@ -423,15 +423,13 @@ pub fn commit_and_push_in(
     fixed_files: &[String],
     push: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let msg = format!(
-        "🤖 codex auto-fix: 修复 {} 个文件 (基于 Gemini Review)",
-        fixed_files.len()
-    );
+    let msg = auto_fix_commit_message(fixed_files.len());
 
     let safe_fixed_files = fixed_files
         .iter()
         .map(|file| validate_git_pathspec_file(file))
         .collect::<Result<Vec<_>, _>>()?;
+    run_auto_fix_verify_commands(repo_root)?;
     checked_output(
         StdCommand::new("git")
             .args(["-C", repo_root])
@@ -474,6 +472,33 @@ pub fn commit_and_push_in(
     Ok(())
 }
 
+fn run_auto_fix_verify_commands(repo_root: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let Ok(commands) = std::env::var("CODEX_AUTO_FIX_VERIFY_COMMANDS") else {
+        return Ok(());
+    };
+    let commands = commands.trim();
+    if commands.is_empty() {
+        return Ok(());
+    }
+
+    eprintln!("🧪 [AutoFix] 正在执行提交前验证: CODEX_AUTO_FIX_VERIFY_COMMANDS");
+    let output = StdCommand::new("sh")
+        .arg("-c")
+        .arg(commands)
+        .current_dir(repo_root)
+        .output()?;
+    if output.status.success() {
+        return Ok(());
+    }
+
+    Err(format!(
+        "CODEX_AUTO_FIX_VERIFY_COMMANDS 验证失败，已阻止自动修复提交/推送。\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    )
+    .into())
+}
+
 fn validate_git_pathspec_file(path: &str) -> Result<String, Box<dyn std::error::Error>> {
     if path.is_empty()
         || path.starts_with(':')
@@ -489,6 +514,23 @@ fn validate_git_pathspec_file(path: &str) -> Result<String, Box<dyn std::error::
 
 fn publish_via_github_api_only() -> bool {
     env_flag_enabled(std::env::var("CODEX_PUBLISH_VIA_GH_API").ok().as_deref())
+}
+
+fn auto_fix_commit_message(file_count: usize) -> String {
+    let prefix = if workflow_owns_next_gemini_review() {
+        "🤖 codex auto-fix"
+    } else {
+        "🤖 codex local auto-fix"
+    };
+    format!("{prefix}: 修复 {file_count} 个文件 (基于 Gemini Review)")
+}
+
+fn workflow_owns_next_gemini_review() -> bool {
+    env_flag_enabled(
+        std::env::var("CODEX_AUTO_FIX_WORKFLOW_OWNS_REVIEW")
+            .ok()
+            .as_deref(),
+    )
 }
 
 fn env_flag_enabled(value: Option<&str>) -> bool {
@@ -592,6 +634,9 @@ fn ensure_api_fallback_fast_forward_safe(
     let local_head = git_stdout(repo_root, &["rev-parse", "HEAD"])?;
     let local_parent = git_stdout(repo_root, &["rev-parse", "HEAD^"])?;
     if remote_head.trim() != local_parent.trim() {
+        if local_parent_is_synthetic_bootstrap_for(repo_root, remote_head.trim())? {
+            return Ok(());
+        }
         return Err(format!(
             "拒绝 GitHub API fallback 推送：远端 HEAD 与本地提交父提交不一致（local_head={}, remote_head={}）",
             local_head.trim(),
@@ -619,6 +664,14 @@ fn ensure_api_fallback_fast_forward_safe(
         remote_head.trim()
     )
     .into())
+}
+
+fn local_parent_is_synthetic_bootstrap_for(
+    repo_root: &str,
+    remote_head: &str,
+) -> Result<bool, Box<dyn std::error::Error>> {
+    let subject = git_stdout(repo_root, &["log", "-1", "--pretty=%s", "HEAD^"])?;
+    Ok(subject.trim() == format!("bootstrap PR head {remote_head}"))
 }
 
 fn api_tree_entries_for_head(
@@ -1017,6 +1070,18 @@ fn parse_skill_md(text: &str) -> (Option<String>, Option<String>, Option<String>
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::{Mutex, OnceLock};
+
+    fn codex_env_lock() -> &'static Mutex<()> {
+        static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+        LOCK.get_or_init(|| Mutex::new(()))
+    }
+
+    fn lock_codex_env() -> std::sync::MutexGuard<'static, ()> {
+        codex_env_lock()
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+    }
 
     #[test]
     fn publish_via_github_api_flag_accepts_only_truthy_values() {
@@ -1311,6 +1376,185 @@ BODY
     }
 
     #[test]
+    fn commit_and_push_runs_configured_verify_commands_before_commit() {
+        let _env_guard = lock_codex_env();
+        let repo = create_patch_test_repo("pre-push-verify");
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["config", "user.email", "test@example.com"])
+            .output()
+            .unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["config", "user.name", "Test User"])
+            .output()
+            .unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["add", "src/lib.rs"])
+            .output()
+            .unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["commit", "-m", "initial"])
+            .output()
+            .unwrap();
+        fs::write(
+            repo.join("src/lib.rs"),
+            "pub fn value() -> i32 {\n    2\n}\n",
+        )
+        .unwrap();
+
+        unsafe {
+            std::env::set_var("CODEX_AUTO_FIX_VERIFY_COMMANDS", "exit 12");
+        }
+        let result = commit_and_push_in(repo.to_str().unwrap(), &["src/lib.rs".to_string()], false);
+        unsafe {
+            std::env::remove_var("CODEX_AUTO_FIX_VERIFY_COMMANDS");
+        }
+
+        assert!(result.is_err());
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("CODEX_AUTO_FIX_VERIFY_COMMANDS")
+        );
+        let head = checked_output(StdCommand::new("git").arg("-C").arg(&repo).args([
+            "log",
+            "--oneline",
+            "-1",
+        ]))
+        .unwrap();
+        assert!(
+            String::from_utf8_lossy(&head.stdout).contains("initial"),
+            "failed verification must prevent the auto-fix commit"
+        );
+        let _ = fs::remove_dir_all(&repo);
+    }
+
+    #[test]
+    fn commit_and_push_uses_local_prefix_by_default_so_gemini_kickoff_runs() {
+        let _env_guard = lock_codex_env();
+        let repo = create_patch_test_repo("local-auto-fix-prefix");
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["config", "user.email", "test@example.com"])
+            .output()
+            .unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["config", "user.name", "Test User"])
+            .output()
+            .unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["add", "src/lib.rs"])
+            .output()
+            .unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["commit", "-m", "initial"])
+            .output()
+            .unwrap();
+        fs::write(
+            repo.join("src/lib.rs"),
+            "pub fn value() -> i32 {\n    2\n}\n",
+        )
+        .unwrap();
+
+        unsafe {
+            std::env::remove_var("CODEX_AUTO_FIX_WORKFLOW_OWNS_REVIEW");
+        }
+        let result = commit_and_push_in(repo.to_str().unwrap(), &["src/lib.rs".to_string()], false);
+
+        let head = checked_output(StdCommand::new("git").arg("-C").arg(&repo).args([
+            "log",
+            "--format=%s",
+            "-1",
+        ]))
+        .unwrap();
+        let subject = String::from_utf8_lossy(&head.stdout);
+        let _ = fs::remove_dir_all(&repo);
+
+        assert!(result.is_ok(), "result={result:?}");
+        assert!(
+            subject.starts_with("🤖 codex local auto-fix:"),
+            "local publish must not use the workflow-owned skip prefix: {subject}"
+        );
+        assert!(
+            !subject.starts_with("🤖 codex auto-fix:"),
+            "local publish would make gemini-review-kickoff skip incorrectly"
+        );
+    }
+
+    #[test]
+    fn commit_and_push_keeps_workflow_prefix_when_workflow_owns_review() {
+        let _env_guard = lock_codex_env();
+        let repo = create_patch_test_repo("workflow-auto-fix-prefix");
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["config", "user.email", "test@example.com"])
+            .output()
+            .unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["config", "user.name", "Test User"])
+            .output()
+            .unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["add", "src/lib.rs"])
+            .output()
+            .unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["commit", "-m", "initial"])
+            .output()
+            .unwrap();
+        fs::write(
+            repo.join("src/lib.rs"),
+            "pub fn value() -> i32 {\n    2\n}\n",
+        )
+        .unwrap();
+
+        unsafe {
+            std::env::set_var("CODEX_AUTO_FIX_WORKFLOW_OWNS_REVIEW", "true");
+        }
+        let result = commit_and_push_in(repo.to_str().unwrap(), &["src/lib.rs".to_string()], false);
+        unsafe {
+            std::env::remove_var("CODEX_AUTO_FIX_WORKFLOW_OWNS_REVIEW");
+        }
+
+        let head = checked_output(StdCommand::new("git").arg("-C").arg(&repo).args([
+            "log",
+            "--format=%s",
+            "-1",
+        ]))
+        .unwrap();
+        let subject = String::from_utf8_lossy(&head.stdout);
+        let _ = fs::remove_dir_all(&repo);
+
+        assert!(result.is_ok(), "result={result:?}");
+        assert!(
+            subject.starts_with("🤖 codex auto-fix:"),
+            "workflow auto-fix must keep the exact skip prefix: {subject}"
+        );
+    }
+
+    #[test]
     fn commit_and_push_falls_back_to_github_api_when_git_push_network_fails() {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -1448,5 +1692,81 @@ BODY
         assert_eq!(push_attempt_count, "3");
         assert!(gh_calls.contains("-X PATCH"));
         assert!(gh_calls.contains("git/refs/heads/codex/test"));
+    }
+
+    #[test]
+    fn api_fallback_accepts_synthetic_tarball_bootstrap_parent() {
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let dir = std::env::temp_dir().join(format!("codex-cli-bootstrap-parent-{}", now));
+        let repo = dir.join("repo");
+        fs::create_dir_all(repo.join("src")).unwrap();
+
+        StdCommand::new("git")
+            .arg("init")
+            .arg(&repo)
+            .output()
+            .unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["config", "user.name", "Codex Test"])
+            .output()
+            .unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["config", "user.email", "codex-test@example.invalid"])
+            .output()
+            .unwrap();
+        fs::write(
+            repo.join("src/lib.rs"),
+            "pub fn value() -> i32 {\n    1\n}\n",
+        )
+        .unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["add", "."])
+            .output()
+            .unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["commit", "-m", "remote head"])
+            .output()
+            .unwrap();
+        let remote_head = git_stdout(repo.to_str().unwrap(), &["rev-parse", "HEAD"]).unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["commit", "--allow-empty", "-m"])
+            .arg(format!("bootstrap PR head {}", remote_head.trim()))
+            .output()
+            .unwrap();
+        fs::write(
+            repo.join("src/lib.rs"),
+            "pub fn value() -> i32 {\n    2\n}\n",
+        )
+        .unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["add", "."])
+            .output()
+            .unwrap();
+        StdCommand::new("git")
+            .arg("-C")
+            .arg(&repo)
+            .args(["commit", "-m", "auto fix"])
+            .output()
+            .unwrap();
+
+        let result = ensure_api_fallback_fast_forward_safe(repo.to_str().unwrap(), &remote_head);
+        let _ = fs::remove_dir_all(&dir);
+
+        assert!(result.is_ok(), "result={result:?}");
     }
 }

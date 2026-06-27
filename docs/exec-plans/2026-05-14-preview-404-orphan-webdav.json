@@ -1,0 +1,34 @@
+{
+  "date": "2026-05-14",
+  "task": "preview-404-orphan-webdav",
+  "goal": "Stop Finder/WebDAV-created non-content records and missing local storage records from appearing in file lists that trigger preview 404s.",
+  "assumptions": [
+    "Preview 404 means the backend cannot open the stored object for an otherwise active DB record.",
+    "macOS AppleDouble files whose names start with ._ are metadata/resource-fork files, not user preview content.",
+    "API file lists and WebDAV PROPFIND both flow through FileService list paths.",
+    "Local storage existence checks are acceptable at page-list granularity; remote storage checks should not be added to the hot list path."
+  ],
+  "risks": [
+    "Filtering after DB pagination can under-fill a page if many records are orphaned.",
+    "Traditional pagination total can only be reduced by hidden records observed on the current page.",
+    "Existing frontend or Redis list caches may need a refetch after deployment.",
+    "Skipping S3 existence checks means remote orphan cleanup remains a maintenance concern."
+  ],
+  "dependencies": [
+    "backend/src/api/webdav.rs",
+    "backend/src/services/file/list.rs",
+    "backend/src/repositories/files.rs",
+    "backend/src/utils/mime.rs",
+    "backend/tests/handler_webdav_tests.rs"
+  ],
+  "steps": [
+    "Confirm DB rows exist for reported IDs and physical local files are missing.",
+    "Add failing WebDAV AppleDouble ignore test.",
+    "Add failing API list missing-local-object filter test.",
+    "Ignore AppleDouble files in WebDAV PUT.",
+    "Hide historical AppleDouble rows in SQL and service list filtering.",
+    "Filter missing local storage objects from list responses with warning logs.",
+    "Bump file list cache visibility key.",
+    "Run focused integration tests and backend verification."
+  ]
+}

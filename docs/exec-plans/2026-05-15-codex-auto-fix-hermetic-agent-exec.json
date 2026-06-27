@@ -1,0 +1,28 @@
+{
+  "date": "2026-05-15",
+  "task": "codex auto-fix hermetic agent exec",
+  "goal": "Prevent self-hosted auto-fix from stalling inside interactive Codex app plugin or MCP initialization.",
+  "assumptions": [
+    "The live stall is caused by the local Codex executor inheriting user config and spawning plugin/MCP helper processes.",
+    "Auto-fix model calls only need a deterministic GPT-5.5 text response, not interactive Codex plugins.",
+    "Killing a timed-out model command must include its grandchildren."
+  ],
+  "risks": [
+    "Ignoring user config can bypass a local interactive profile, so the workflow must pass the intended model explicitly.",
+    "Process-group termination is Unix-specific; non-Unix platforms keep the existing direct-child behavior.",
+    "The currently running stuck workflow uses the old binary until it is cancelled or times out."
+  ],
+  "dependencies": [
+    "scripts/codex-cli/src/llm.rs",
+    ".github/workflows/codex-auto-fix.yml",
+    "scripts/codex-cli/tests/workflow_state.rs",
+    "docs/constraints/C-091-codex-auto-fix-agent-exec-must-be-hermetic.md"
+  ],
+  "verification": [
+    "cargo test --manifest-path scripts/codex-cli/Cargo.toml llm::tests -- --nocapture",
+    "cargo fmt --manifest-path scripts/codex-cli/Cargo.toml -- --check",
+    "cargo test --manifest-path scripts/codex-cli/Cargo.toml",
+    "cargo clippy --manifest-path scripts/codex-cli/Cargo.toml --all-targets -- -D warnings",
+    "bash -n .github/scripts/codex-auto-fix-state.sh"
+  ]
+}

@@ -247,9 +247,23 @@ describe("Trash page", () => {
       "text-center",
     );
     expect(screen.getByRole("button", { name: "选择" })).toHaveClass(
+      "selection-checkbox-hover-reveal",
+    );
+    expect(screen.getByRole("button", { name: "选择" })).not.toHaveClass(
       "invisible",
       "group-hover:visible",
     );
+    expect(
+      readFileListGlassRule(
+        ".fileListGlassScope .selection-checkbox-hover-reveal",
+      ),
+    ).toContain("visibility: visible");
+    expect(
+      readFileSync(
+        resolve(__dirname, "../components/files/list/FileListGlass.css"),
+        "utf8",
+      ),
+    ).toContain("@media (hover: hover) and (pointer: fine)");
     expect(screen.queryByTestId("trash-card-grid-file-1")).not.toBeInTheDocument();
     expect(screen.queryByTestId("trash-card-scanline-file-1")).not.toBeInTheDocument();
     expect(screen.queryByTestId("trash-card-corner-file-1")).not.toBeInTheDocument();
@@ -261,11 +275,18 @@ describe("Trash page", () => {
       "text-[var(--trash-countdown-text)]",
     );
     expect(screen.getByTestId("trash-card-restore-file-1")).toHaveClass(
-      "size-[clamp(0.6rem,1.75vw,0.86rem)]",
+      "trashCardActionButton",
       "glass-btn",
       "allFilesBtnHighlight",
     );
+    const actionRow = screen.getByTestId("trash-card-actions-file-1");
+    expect(actionRow).toHaveClass("trashCardActions");
+    expect(actionRow).toContainElement(screen.getByRole("button", { name: "还原 file-1.txt" }));
+    expect(actionRow).toContainElement(
+      screen.getByRole("button", { name: "彻底删除 file-1.txt" }),
+    );
     expect(screen.getByRole("button", { name: "彻底删除 file-1.txt" })).toHaveClass(
+      "trashCardActionButton",
       "glass-btn",
       "uploadBtnHighlight",
     );

@@ -10,6 +10,7 @@ fn pending_without_fix_blocks_instead_of_claiming_clean() {
         ("FIXED", "false"),
         ("PUSH_BLOCKED", "false"),
         ("PENDING_COUNT", "2"),
+        ("CODEX_AUTO_FIX_STRICT", "true"),
     ]);
 
     assert_eq!(output["action"], "needs_human");
@@ -19,12 +20,48 @@ fn pending_without_fix_blocks_instead_of_claiming_clean() {
 }
 
 #[test]
+fn relaxed_pending_without_fix_clears_review_state() {
+    let output = plan(&[
+        ("CURRENT_ROUND", "gemini-review-round-1"),
+        ("FIXED", "false"),
+        ("PUSH_BLOCKED", "false"),
+        ("PENDING_COUNT", "2"),
+        ("CODEX_AUTO_FIX_STRICT", "false"),
+    ]);
+
+    assert_eq!(output["action"], "relaxed_clear");
+    assert_eq!(output["next_round"], "gemini-review-round-max");
+    assert_eq!(output["request_review"], "false");
+    assert_eq!(output["ready_to_merge"], "true");
+    assert_eq!(output["human_block"], "false");
+    assert_eq!(output["state_label"], "gemini-review-clean");
+}
+
+#[test]
+fn relaxed_push_blocked_clears_review_state() {
+    let output = plan(&[
+        ("CURRENT_ROUND", "gemini-review-round-1"),
+        ("FIXED", "false"),
+        ("PUSH_BLOCKED", "true"),
+        ("PENDING_COUNT", "3"),
+        ("CODEX_AUTO_FIX_STRICT", "false"),
+    ]);
+
+    assert_eq!(output["action"], "relaxed_clear");
+    assert_eq!(output["request_review"], "false");
+    assert_eq!(output["ready_to_merge"], "true");
+    assert_eq!(output["human_block"], "false");
+    assert_eq!(output["state_label"], "gemini-review-clean");
+}
+
+#[test]
 fn clean_first_round_requests_second_review() {
     let output = plan(&[
         ("CURRENT_ROUND", "gemini-review-round-1"),
         ("FIXED", "false"),
         ("PUSH_BLOCKED", "false"),
         ("PENDING_COUNT", "0"),
+        ("CODEX_AUTO_FIX_STRICT", "true"),
     ]);
 
     assert_eq!(output["action"], "advance");
@@ -40,6 +77,7 @@ fn clean_second_round_marks_round_max_ready() {
         ("FIXED", "false"),
         ("PUSH_BLOCKED", "false"),
         ("PENDING_COUNT", "0"),
+        ("CODEX_AUTO_FIX_STRICT", "true"),
     ]);
 
     assert_eq!(output["action"], "complete");
@@ -55,6 +93,7 @@ fn pushed_partial_fix_continues_to_second_review_but_not_ready() {
         ("FIXED", "true"),
         ("PUSH_BLOCKED", "false"),
         ("PENDING_COUNT", "1"),
+        ("CODEX_AUTO_FIX_STRICT", "true"),
     ]);
 
     assert_eq!(output["action"], "advance_with_pending");
@@ -70,6 +109,7 @@ fn fail_closed_security_blocks_loop() {
         ("FIXED", "false"),
         ("PUSH_BLOCKED", "true"),
         ("PENDING_COUNT", "0"),
+        ("CODEX_AUTO_FIX_STRICT", "true"),
     ]);
 
     assert_eq!(output["action"], "push_blocked");
@@ -78,7 +118,7 @@ fn fail_closed_security_blocks_loop() {
 }
 
 #[test]
-fn codex_auto_fix_concurrency_is_job_scoped() {
+fn codex_auto_fix_concurrency_serializes_without_canceling_active_runs() {
     let workflow = fs::read_to_string(codex_auto_fix_workflow())
         .expect("codex auto-fix workflow should be readable");
     let jobs_index = workflow
@@ -89,15 +129,21 @@ fn codex_auto_fix_concurrency_is_job_scoped() {
 
     assert!(
         top_level.contains("\nconcurrency:\n"),
-        "workflow-level concurrency is required to cancel stale same-PR review runs before they wait for the self-hosted runner"
+        "workflow-level concurrency is required to serialize same-PR review runs before they contend for the self-hosted runner"
     );
     assert!(
-        top_level.contains("github.ref") && top_level.contains("github.actor"),
-        "workflow-level concurrency must use fields available during workflow initialization"
+        top_level.contains("codex-auto-fix-pr-")
+            && top_level.contains("github.event.issue.number")
+            && top_level.contains("github.event.pull_request.number"),
+        "workflow-level concurrency must use the PR number, not github.ref/actor, so unrelated PRs do not stale-block each other"
     );
     assert!(
-        top_level.contains("  cancel-in-progress: true"),
-        "a newer Gemini review should cancel stale same-PR codex-fix runs instead of building an unbounded queue"
+        !top_level.contains("github.ref }}-${{ github.actor"),
+        "github.ref/actor concurrency can serialize unrelated issue_comment review runs on the default branch"
+    );
+    assert!(
+        top_level.contains("  cancel-in-progress: false"),
+        "a newer Gemini review should wait for the active codex-fix run so it can finish state advancement and publish"
     );
     assert!(
         !jobs.contains("    concurrency:\n"),
@@ -111,21 +157,47 @@ fn codex_auto_fix_serial_runner_has_timeouts() {
         .expect("codex auto-fix workflow should be readable");
 
     assert!(
-        workflow.contains("    timeout-minutes: 35"),
+        workflow.contains("    timeout-minutes: 55"),
         "codex-fix job should have a hard timeout so one stale run cannot block the PR queue forever"
     );
     assert!(
-        workflow.contains("        timeout-minutes: 30\n        if: steps.round.outputs.current_round != 'gemini-review-round-max'"),
+        workflow.contains("        timeout-minutes: 45\n        if: steps.round.outputs.current_round != 'gemini-review-round-max'"),
         "the pr-auto-fix step should time out before the job timeout and release the concurrency group"
     );
     assert!(
-        workflow.contains("CODEX_AGENT_TIMEOUT_SECONDS: 1200"),
+        workflow.contains("CODEX_AGENT_TIMEOUT_SECONDS: 360"),
         "the local Codex child process should have a bounded timeout below the step timeout"
+    );
+    assert!(
+        workflow.contains("CODEX_AGENT_MODEL: gpt-5.5"),
+        "auto-fix should force the intended GPT-5.5 model instead of inheriting an interactive Codex profile"
     );
     assert!(
         workflow.contains("name: Auto-fix queue guard diagnostics")
             && workflow.contains("codex_queue_group=codex-auto-fix-${PR_NUMBER}"),
         "codex-fix should print queue guard diagnostics so stale-run waits are explainable"
+    );
+}
+
+#[test]
+fn codex_auto_fix_runs_doctor_before_long_auto_fix_step() {
+    let workflow = fs::read_to_string(codex_auto_fix_workflow())
+        .expect("codex auto-fix workflow should be readable");
+
+    let doctor_index = workflow
+        .find("doctor --json")
+        .expect("workflow should run codex-auto-fix doctor before pr-auto-fix");
+    let auto_fix_index = workflow
+        .find("pr-auto-fix \\")
+        .expect("workflow should run pr-auto-fix");
+
+    assert!(
+        doctor_index < auto_fix_index,
+        "doctor should fail fast before the expensive auto-fix command starts"
+    );
+    assert!(
+        workflow.contains("select(.name == \"agent.command\" and .status == \"warning\")"),
+        "workflow should stop when CODEX_AGENT_COMMAND is missing or recursively points to codex-auto-fix"
     );
 }
 
@@ -165,6 +237,148 @@ fn codex_auto_fix_passes_review_json_to_auto_fix() {
     assert!(
         workflow.contains("--review-json \"$REVIEW_JSON_PATH\""),
         "workflow should drive pr-auto-fix from the validated JSON input"
+    );
+    assert!(
+        workflow.contains("printf '%s\\n' \"$RESULT\" > /tmp/codex-result.json")
+            && workflow.contains("CODEX_RESULT_PATH=/tmp/codex-result.json"),
+        "workflow should persist pr-auto-fix JSON so the state machine can publish the exact Gemini issue/status table"
+    );
+}
+
+#[test]
+fn codex_auto_fix_has_coherent_runtime_budget() {
+    let workflow = fs::read_to_string(codex_auto_fix_workflow())
+        .expect("codex auto-fix workflow should be readable");
+
+    assert!(
+        workflow.contains("timeout-minutes: 55"),
+        "codex-fix job should leave enough room for checkout, JSON conversion, auto-fix, and state advancement"
+    );
+    assert!(
+        workflow.contains("timeout-minutes: 45"),
+        "pr-auto-fix step should not be killed at the old 30 minute boundary"
+    );
+    assert!(
+        workflow.contains("CODEX_AGENT_TIMEOUT_SECONDS: 360"),
+        "each model call should be bounded so one slow audit cannot consume the whole step"
+    );
+    assert!(
+        workflow.contains("CODEX_AUTO_FIX_BUDGET_SECONDS: 2400"),
+        "the CLI should receive a budget lower than the step timeout so it can return JSON before Actions kills it"
+    );
+    assert!(
+        workflow.contains("CODEX_AUTO_FIX_STRICT: false"),
+        "review automation should run in relaxed mode so recoverable patch/audit failures do not interrupt GPT-5.5 repair"
+    );
+    assert!(
+        workflow.contains("CODEX_AUTO_FIX_DIRECT_FULL_FILE: true"),
+        "relaxed review automation should write complete files directly instead of blocking on patch context mismatch"
+    );
+    assert!(
+        workflow.contains("CODEX_AGENT_MODEL: ${{ env.CODEX_AGENT_MODEL }}"),
+        "codex-fix should pass the model override into codex-cli"
+    );
+    assert!(
+        workflow.contains("steps.round.outputs.current_round == 'gemini-review-round-max' && env.CODEX_AUTO_FIX_STRICT == 'true'"),
+        "relaxed review automation must not skip new Gemini review events just because an old round-max label is present"
+    );
+    assert!(
+        workflow.contains("WAIT_FOR_GEMINI_REVIEW: false"),
+        "relaxed review automation should clear state immediately instead of waiting for another Gemini review"
+    );
+    assert!(
+        workflow.contains("codex_auto_fix_budget_seconds=${CODEX_AUTO_FIX_BUDGET_SECONDS}"),
+        "queue diagnostics should print the effective CLI budget"
+    );
+}
+
+#[test]
+fn codex_auto_fix_runs_frontend_pre_push_validation() {
+    let workflow = fs::read_to_string(codex_auto_fix_workflow())
+        .expect("codex auto-fix workflow should be readable");
+    let script = fs::read_to_string(repo_path("scripts/codex-cli/tools/pre-push-verify.sh"))
+        .expect("shared pre-push verify script should be readable");
+
+    assert!(
+        workflow.contains("CODEX_AUTO_FIX_VERIFY_COMMANDS:"),
+        "codex-fix must define pre-push verification so generated patches are checked before publish"
+    );
+    assert!(
+        workflow.contains("bash scripts/codex-cli/tools/pre-push-verify.sh --changed")
+            && script.contains("git status --short -- frontend/")
+            && script.contains("set -euo pipefail")
+            && script.contains("npm ci --ignore-scripts")
+            && script.contains("npm run lint")
+            && script.contains("npx --no-install tsc -b --noEmit"),
+        "frontend auto-fix changes must run fail-fast install, lint, and typecheck before commit/push without compiling native install scripts"
+    );
+}
+
+#[test]
+fn codex_auto_fix_runs_backend_pre_push_format_validation() {
+    let workflow = fs::read_to_string(codex_auto_fix_workflow())
+        .expect("codex auto-fix workflow should be readable");
+    let script = fs::read_to_string(repo_path("scripts/codex-cli/tools/pre-push-verify.sh"))
+        .expect("shared pre-push verify script should be readable");
+
+    assert!(
+        workflow.contains("bash scripts/codex-cli/tools/pre-push-verify.sh --changed")
+            && script.contains("git status --short -- backend/")
+            && script.contains("cd backend")
+            && script.contains("cargo fmt --all -- --check")
+            && script.contains("cargo clippy --all-targets --all-features -- -D warnings"),
+        "backend auto-fix changes must run cargo fmt and clippy before commit/push because GitHub API publish does not trigger CI"
+    );
+}
+
+#[test]
+fn codex_auto_fix_uses_shared_pre_push_verify_script() {
+    let workflow = fs::read_to_string(codex_auto_fix_workflow())
+        .expect("codex auto-fix workflow should be readable");
+
+    assert!(
+        workflow.contains("bash scripts/codex-cli/tools/pre-push-verify.sh --changed"),
+        "codex-fix should delegate publish verification to the shared script used by local git hooks"
+    );
+}
+
+#[test]
+fn codex_shared_pre_push_verify_script_covers_backend_and_frontend() {
+    let script = fs::read_to_string(repo_path("scripts/codex-cli/tools/pre-push-verify.sh"))
+        .expect("shared pre-push verify script should be readable");
+
+    assert!(
+        script.contains("git status --short -- frontend/")
+            && script.contains("npm ci --ignore-scripts")
+            && script.contains("npm run lint")
+            && script.contains("npx --no-install tsc -b --noEmit"),
+        "shared verify script must preserve the frontend auto-fix validation contract"
+    );
+    assert!(
+        script.contains("git status --short -- backend/")
+            && script.contains("cargo fmt --all -- --check")
+            && script.contains("cargo clippy --all-targets --all-features -- -D warnings"),
+        "shared verify script must preserve the backend auto-fix validation contract"
+    );
+}
+
+#[test]
+fn codex_git_hook_template_and_installer_delegate_to_shared_verify_script() {
+    let hook = fs::read_to_string(repo_path("scripts/git-hooks/pre-push"))
+        .expect("versioned pre-push hook template should be readable");
+    let installer = fs::read_to_string(repo_path("scripts/git-hooks/install.sh"))
+        .expect("git hook installer should be readable");
+
+    assert!(
+        hook.contains("SKIP_CODEX_VERIFY")
+            && hook.contains("scripts/codex-cli/tools/pre-push-verify.sh --changed"),
+        "local pre-push hook must support an explicit emergency bypass and otherwise delegate to the shared verifier"
+    );
+    assert!(
+        installer.contains(".git/hooks/pre-push")
+            && installer.contains("scripts/git-hooks/pre-push")
+            && installer.contains("chmod +x"),
+        "installer must copy the versioned hook template into the local untracked git hooks directory"
     );
 }
 
@@ -213,6 +427,38 @@ fn codex_auto_fix_bootstraps_pr_head_without_git_https_checkout() {
         "workflow should seed the workspace from a local repository before contacting GitHub"
     );
     assert!(
+        workflow.contains("CODEX_LOCAL_BARE_MIRROR"),
+        "workflow should prefer a maintained local bare mirror before falling back to network tarballs"
+    );
+    assert!(
+        workflow.contains("sync_local_bare_mirror"),
+        "workflow should maintain the local bare mirror instead of assuming another process refreshed it"
+    );
+    assert!(
+        workflow.contains("http.lowSpeedTime=30"),
+        "local mirror refresh should bound stalled Git transfers before falling back"
+    );
+    assert!(
+        workflow.contains("hydrate_from_local_sources"),
+        "workflow should try to hydrate missing PR head commits from local sources before GitHub tarballs"
+    );
+    let clean_index = workflow
+        .find("prepare_reused_workspace")
+        .expect("workflow should define reused workspace cleanup before checkout");
+    let hydrate_index = workflow
+        .find("hydrate_from_local_sources")
+        .expect("workflow should hydrate from local sources");
+    assert!(
+        clean_index < hydrate_index
+            && workflow.contains("git reset --hard")
+            && workflow.contains("git clean -ffdx"),
+        "self-hosted runner workspaces must be cleaned before checkout so stale local edits cannot block PR head hydration"
+    );
+    assert!(
+        workflow.contains("workspace path matches CODEX_LOCAL_REPO_SEED"),
+        "workflow should refuse to clean the local seed repository if workspace/seed are accidentally the same path"
+    );
+    assert!(
         workflow.contains("headRefOid") && workflow.contains("headRefName"),
         "workflow should resolve the exact PR head branch and SHA through the GitHub API"
     );
@@ -222,14 +468,27 @@ fn codex_auto_fix_bootstraps_pr_head_without_git_https_checkout() {
     );
     assert!(
         workflow.contains("download_pr_head_archive")
-            && workflow.contains("for attempt in 1 2 3 4 5"),
-        "workflow should retry transient PR tarball stream failures before failing closed"
+            && workflow.contains("CODEX_PR_TARBALL_BUDGET_SECONDS")
+            && workflow.contains("tarball_deadline"),
+        "workflow should retry transient PR tarball stream failures inside a hard total budget before failing closed"
     );
     assert!(
         workflow.contains("curl")
             && workflow.contains("--http1.1")
             && workflow.contains("--retry-all-errors"),
         "workflow should fall back to HTTP/1.1 curl retries when gh api streaming is cancelled"
+    );
+    assert!(
+        workflow.contains("--max-time 45"),
+        "each tarball network attempt should be bounded so bootstrap cannot burn the review budget"
+    );
+    assert!(
+        workflow.contains("bootstrap_status=blocked"),
+        "workflow should expose checkout/bootstrap blocked status instead of making failures look like review failures"
+    );
+    assert!(
+        workflow.contains("Codex checkout/bootstrap blocked"),
+        "workflow should post a clear PR comment when exact PR head bootstrap is blocked"
     );
     assert!(
         workflow.contains("Cannot verify exact PR head"),
@@ -253,6 +512,25 @@ fn gemini_kickoff_only_skips_actual_auto_fix_commit_subjects() {
     assert!(
         workflow.contains("\"$LAST_COMMIT_MESSAGE\" == \"🤖 codex auto-fix:\"*"),
         "Gemini kickoff should only skip the exact auto-fix bot commit subject prefix"
+    );
+    assert!(
+        !workflow.contains("\"$LAST_COMMIT_MESSAGE\" == \"🤖 codex local auto-fix:\"*"),
+        "local Codex auto-fix commits must not be skipped by Gemini kickoff"
+    );
+    assert!(
+        workflow.contains("GEMINI_REVIEW_REQUIRED: false"),
+        "Gemini kickoff should request review without making missing Gemini responses a blocking check in relaxed mode"
+    );
+}
+
+#[test]
+fn codex_auto_fix_workflow_explicitly_owns_next_gemini_review() {
+    let workflow = fs::read_to_string(codex_auto_fix_workflow())
+        .expect("codex auto-fix workflow should be readable");
+
+    assert!(
+        workflow.contains("CODEX_AUTO_FIX_WORKFLOW_OWNS_REVIEW: true"),
+        "only the GitHub Actions auto-fix workflow should opt into the commit prefix that Gemini kickoff skips"
     );
 }
 
@@ -291,6 +569,29 @@ fn state_script_names_medium_and_medium_plus_as_pending_scope() {
     );
 }
 
+#[test]
+fn relaxed_clear_posts_review_status_table() {
+    let script =
+        fs::read_to_string(workflow_script()).expect("workflow state script should be readable");
+
+    assert!(
+        script.contains("relaxed_review_status_comment"),
+        "relaxed clear should build a fresh review status comment instead of only pointing to older comments"
+    );
+    assert!(
+        script.contains("CODEX_RESULT_PATH") && script.contains(".issue_statuses // []"),
+        "relaxed clear should read pr-auto-fix issue_statuses from the persisted result JSON"
+    );
+    assert!(
+        script.contains("| # | 严重级别 | 位置 | Gemini 问题 | Codex 状态 | 解决方案/说明 |"),
+        "relaxed clear comments should include a visible Gemini issue/solution table"
+    );
+    assert!(
+        script.contains("宽松模式只表示这些问题不再阻塞自动闭环，不代表每一项都已代码修复"),
+        "relaxed clear must explain that green automation does not mean every Gemini finding was fixed"
+    );
+}
+
 fn plan(envs: &[(&str, &str)]) -> HashMap<String, String> {
     let script = workflow_script();
     let output = Command::new("bash")
@@ -320,6 +621,12 @@ fn workflow_script() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(".github/scripts/codex-auto-fix-state.sh")
+}
+
+fn repo_path(path: &str) -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .join(path)
 }
 
 fn codex_auto_fix_workflow() -> PathBuf {

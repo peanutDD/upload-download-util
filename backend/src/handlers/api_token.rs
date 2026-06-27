@@ -67,6 +67,9 @@ pub async fn create_token_handler(
             token,
             expires_at: api_token.expires_at,
             created_at: api_token.created_at,
+            webdav_enabled: api_token.webdav_enabled,
+            webdav_read_only: api_token.webdav_read_only,
+            webdav_root_folder_id: api_token.webdav_root_folder_id,
         }
     })))
 }

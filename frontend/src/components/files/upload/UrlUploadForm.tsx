@@ -257,7 +257,7 @@ export default function UrlUploadForm({ onFileAdd }: UrlUploadFormProps) {
           type="button"
           onClick={handleUpload}
           disabled={!urlInput.trim() || loading}
-          className="uploadDialogCyberPrimaryBtn font-brand inline-flex items-center justify-center gap-[clamp(0.39rem,0.9vw,0.5rem)] rounded-[clamp(0.4rem,1vw,0.5rem)] bg-[var(--btn-primary-bg)] px-[clamp(1rem,2.25vw,1.25rem)] py-[clamp(0.4875rem,1.125vw,0.625rem)] text-[clamp(0.75rem,1.8vw,0.875rem)] font-normal tracking-widest text-[var(--btn-primary-text)] transition-colors hover:bg-[var(--btn-primary-bg-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="uploadDialogCyberPrimaryBtn uploadDialogUrlUploadBtn font-brand inline-flex items-center justify-center gap-[clamp(0.39rem,0.9vw,0.5rem)] rounded-[clamp(0.4rem,1vw,0.5rem)] bg-[var(--btn-primary-bg)] px-[clamp(1rem,2.25vw,1.25rem)] py-[clamp(0.4875rem,1.125vw,0.625rem)] text-[clamp(0.75rem,1.8vw,0.875rem)] font-normal tracking-widest text-[var(--btn-primary-text)] transition-colors hover:bg-[var(--btn-primary-bg-hover)] disabled:cursor-not-allowed disabled:opacity-50"
           data-oid="dp9.vve"
         >
           <Link2 className="h-[clamp(0.78rem,1.8vw,1rem)] w-[clamp(0.78rem,1.8vw,1rem)]" aria-hidden="true" />

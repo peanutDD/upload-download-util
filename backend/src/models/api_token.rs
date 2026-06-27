@@ -15,6 +15,9 @@ impl From<crate::entities::api_token::ApiToken> for ApiTokenListItem {
             last_used_at: token.last_used_at,
             expires_at: token.expires_at,
             created_at: token.created_at,
+            webdav_enabled: token.webdav_enabled,
+            webdav_read_only: token.webdav_read_only,
+            webdav_root_folder_id: token.webdav_root_folder_id,
         }
     }
 }

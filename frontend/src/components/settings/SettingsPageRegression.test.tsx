@@ -18,6 +18,7 @@ import {
   useDeleteApiToken,
 } from "../../hooks/useApiTokens";
 import { useStorageUsage } from "../../hooks/useStorageUsage";
+import { useOcrStatus } from "../../hooks/useOcrStatus";
 
 vi.mock("../../store/themeStore", () => ({
   useThemeStore: vi.fn(),
@@ -44,6 +45,10 @@ vi.mock("../../hooks/useApiTokens", () => ({
 
 vi.mock("../../hooks/useStorageUsage", () => ({
   useStorageUsage: vi.fn(),
+}));
+
+vi.mock("../../hooks/useOcrStatus", () => ({
+  useOcrStatus: vi.fn(),
 }));
 
 vi.mock("../../hooks/useClipboard", () => ({
@@ -128,6 +133,15 @@ beforeEach(() => {
   vi.mocked(useStorageUsage).mockReturnValue({
     data: { total_size: 2048, file_count: 3 },
   } as unknown as ReturnType<typeof useStorageUsage>);
+  vi.mocked(useOcrStatus).mockReturnValue({
+    data: {
+      enabled: false,
+      pdf_max_pages: 5,
+      tesseract: { bin: "tesseract", available: false },
+      poppler: { bin: "pdftoppm", available: false },
+    },
+    isLoading: false,
+  } as unknown as ReturnType<typeof useOcrStatus>);
 });
 
 describe("Settings page regressions", () => {
@@ -137,6 +151,30 @@ describe("Settings page regressions", () => {
     await userEvent.click(screen.getByRole("button", { name: /Light/i }));
 
     expect(mockSetTheme).toHaveBeenCalledWith("light");
+  });
+
+  it("offers Terminal as the fourth theme option", async () => {
+    render(<ThemeSection />);
+
+    expect(screen.getByRole("button", { name: /Terminal/i })).toHaveTextContent(
+      /neon terminal/i,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: /Terminal/i }));
+
+    expect(mockSetTheme).toHaveBeenCalledWith("terminal");
+  });
+
+  it("offers Portfolio as the fifth theme option", async () => {
+    render(<ThemeSection />);
+
+    expect(screen.getByRole("button", { name: /Portfolio/i })).toHaveTextContent(
+      /neon developer portfolio/i,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: /Portfolio/i }));
+
+    expect(mockSetTheme).toHaveBeenCalledWith("portfolio");
   });
 
   it("reveals email verification only when the profile email changes", async () => {
@@ -162,7 +200,44 @@ describe("Settings page regressions", () => {
     );
 
     expect(mockCreateMutate).toHaveBeenCalledWith(
-      { name: "CI token", expires_in_days: 7 },
+      {
+        name: "CI token",
+        expires_in_days: 7,
+        webdav_enabled: true,
+        webdav_read_only: false,
+        webdav_root_folder_id: null,
+      },
+      expect.objectContaining({
+        onError: expect.any(Function),
+        onSuccess: expect.any(Function),
+      }),
+    );
+  });
+
+  it("keeps the custom WebDAV permission controls wired to token creation", async () => {
+    render(<ApiTokenSection />);
+
+    expect(screen.getByTestId("webdav-enabled-option")).toHaveClass(
+      "has-[:checked]:bg-[var(--settings-secondary-bg)]",
+    );
+    expect(screen.getByTestId("webdav-readonly-option")).toHaveClass(
+      "has-[:checked]:bg-[var(--settings-secondary-bg)]",
+    );
+
+    await userEvent.click(screen.getByLabelText(/WebDAV read-only/i));
+    await userEvent.type(screen.getByLabelText(/Token name/i), "Read token");
+    await userEvent.type(screen.getByLabelText(/Expires in/i), "30");
+    await userEvent.click(
+      screen.getByRole("button", { name: /Create token/i }),
+    );
+
+    expect(mockCreateMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "Read token",
+        expires_in_days: 30,
+        webdav_enabled: true,
+        webdav_read_only: true,
+      }),
       expect.objectContaining({
         onError: expect.any(Function),
         onSuccess: expect.any(Function),
@@ -177,6 +252,9 @@ describe("Settings page regressions", () => {
       created_at: "2026-05-04T00:00:00Z",
       last_used_at: null,
       expires_at: null,
+      webdav_enabled: true,
+      webdav_read_only: false,
+      webdav_root_folder_id: null,
     };
     vi.mocked(useApiTokens).mockReturnValue(asApiTokensQuery([token]));
 
@@ -244,6 +322,129 @@ describe("Settings page regressions", () => {
     expect(screen.queryByRole("link", { name: /Jump to Tokens/i })).not.toBeInTheDocument();
   });
 
+  it("does not render the Appearance section on the Settings page", () => {
+    render(
+      <MemoryRouter initialEntries={["/settings"]}>
+        <Routes>
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(
+      screen.queryByRole("heading", { name: "Appearance" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Classic purple theme/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps the Settings Center header outside the redesigned content groups", () => {
+    render(
+      <MemoryRouter initialEntries={["/settings"]}>
+        <Routes>
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    const cardGrid = screen.getByTestId("settings-card-grid");
+
+    expect(cardGrid).toHaveClass("grid");
+    expect(cardGrid).not.toHaveTextContent("Settings Center");
+    expect(cardGrid).toHaveTextContent("Account");
+    expect(cardGrid).toHaveTextContent("Storage");
+    expect(cardGrid).toHaveTextContent("Security");
+    expect(cardGrid).toHaveTextContent("WebDAV Access");
+    expect(cardGrid).toHaveTextContent("OCR Status");
+    expect(cardGrid).toHaveTextContent("API Tokens");
+  });
+
+  it("adds Settings visual polish without changing the content layout", () => {
+    render(
+      <MemoryRouter initialEntries={["/settings"]}>
+        <Routes>
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByTestId("settings-hero-panel")).toHaveClass(
+      "isolate",
+      "transition-[border-color,box-shadow]",
+    );
+
+    const settingsCards = screen.getAllByTestId("settings-card-shell");
+    expect(settingsCards).toHaveLength(6);
+    expect(settingsCards[0]).toHaveClass(
+      "group/settings-card",
+      "transition-[border-color,box-shadow,transform]",
+    );
+    expect(screen.getByTestId("settings-card-grid")).toHaveTextContent(
+      /Account[\s\S]*Security[\s\S]*WebDAV Access[\s\S]*API Tokens[\s\S]*OCR Status[\s\S]*Storage/,
+    );
+  });
+
+  it("uses focused Settings layout groups instead of forcing every pair equal height", () => {
+    render(
+      <MemoryRouter initialEntries={["/settings"]}>
+        <Routes>
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    const identityGroup = screen.getByTestId("settings-group-identity");
+    const webdavFocus = screen.getByTestId("settings-group-webdav-focus");
+    const tokenWorkspace = screen.getByTestId("settings-group-token-workspace");
+    const statusGroup = screen.getByTestId("settings-group-status");
+
+    expect(identityGroup).toHaveClass("xl:grid-cols-2", "xl:items-stretch");
+    expect(webdavFocus).toHaveClass(
+      "xl:[&>section]:p-[clamp(1.35rem,2.8vw,1.75rem)]",
+    );
+    expect(tokenWorkspace).toHaveClass(
+      "xl:[&>section]:p-[clamp(1.35rem,2.8vw,1.75rem)]",
+    );
+    expect(statusGroup).toHaveClass("lg:grid-cols-2", "lg:items-stretch");
+    expect(identityGroup).toHaveTextContent(/Account[\s\S]*Security/);
+    expect(webdavFocus).toHaveTextContent("WebDAV Access");
+    expect(tokenWorkspace).toHaveTextContent("API Tokens");
+    expect(statusGroup).toHaveTextContent(/OCR Status[\s\S]*Storage/);
+    expect(
+      screen.queryByTestId("settings-card-row-webdav-tokens"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("aligns first-row form actions and stretches the bottom status row", () => {
+    render(
+      <MemoryRouter initialEntries={["/settings"]}>
+        <Routes>
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByTestId("settings-account-column")).toHaveClass(
+      "[&>section]:h-full",
+    );
+    expect(screen.getByTestId("settings-security-column")).toHaveClass(
+      "[&>section]:h-full",
+    );
+    expect(screen.getByTestId("settings-account-actions")).toHaveClass(
+      "mt-auto",
+    );
+    expect(screen.getByTestId("settings-security-actions")).toHaveClass(
+      "mt-auto",
+    );
+    expect(screen.getByTestId("settings-ocr-column")).toHaveClass(
+      "[&>section]:h-full",
+    );
+    expect(screen.getByTestId("settings-storage-column")).toHaveClass(
+      "[&>section]:h-full",
+    );
+  });
+
   it("returns home only from the title icon", async () => {
     render(
       <MemoryRouter initialEntries={["/settings"]}>
@@ -257,5 +458,56 @@ describe("Settings page regressions", () => {
     await userEvent.click(screen.getByRole("button", { name: /Go to files home/i }));
 
     expect(screen.getByTestId("location")).toHaveTextContent("/files");
+  });
+
+  it("shows WebDAV access guidance without rendering a real token", () => {
+    render(
+      <MemoryRouter initialEntries={["/settings"]}>
+        <Routes>
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText("WebDAV Access")).toBeInTheDocument();
+    expect(screen.getByText("Connection details")).toBeInTheDocument();
+    expect(screen.getByText("Credential mapping")).toBeInTheDocument();
+    expect(screen.getByText("Setup order")).toBeInTheDocument();
+    expect(screen.getByText("Client notes")).toBeInTheDocument();
+    expect(screen.getByText("http://localhost:3000/dav")).toBeInTheDocument();
+    expect(screen.getByText(/Password maps to an API Token/i)).toBeInTheDocument();
+    expect(screen.getByText(/Open your WebDAV client/i)).toBeInTheDocument();
+    expect(screen.getByText("Finder")).toBeInTheDocument();
+    expect(screen.getByText("rclone")).toBeInTheDocument();
+    expect(screen.queryByText("test-token")).not.toBeInTheDocument();
+  });
+
+  it("keeps WebDAV panels readable in the full-width focused Settings section", () => {
+    render(
+      <MemoryRouter initialEntries={["/settings"]}>
+        <Routes>
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByTestId("webdav-access-grid")).toHaveClass(
+      "grid",
+    );
+    expect(screen.getByTestId("webdav-guidance-grid")).toHaveClass(
+      "lg:grid-cols-3",
+    );
+    expect(screen.getByTestId("webdav-connection-panel")).not.toHaveClass(
+      "h-full",
+    );
+    expect(screen.getByTestId("webdav-setup-panel")).toHaveClass(
+      "h-full",
+    );
+    expect(screen.getByTestId("webdav-credentials-panel")).toHaveClass(
+      "h-full",
+    );
+    expect(screen.getByTestId("webdav-clients-panel")).toHaveClass(
+      "h-full",
+    );
   });
 });

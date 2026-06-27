@@ -1,0 +1,36 @@
+{
+  "task": "finder-upload-preview-mime",
+  "date": "2026-05-13",
+  "goal": "修复通过 Finder/文件选择器或 macOS Finder WebDAV 上传的可预览文件因 MIME 为 application/octet-stream 而无法预览的问题，并兼容旧元数据。",
+  "assumptions": [
+    "预览能力由文件元数据 mime_type 驱动。",
+    "Finder 或浏览器可能把本地文件 multipart 或 WebDAV PUT Content-Type 上报为空或 application/octet-stream。",
+    "旧文件已经落库为 application/octet-stream 时，前后端预览需要运行时兜底。",
+    "前端 getUploadMimeType 和后端 mime_guess 可提供扩展名兜底。"
+  ],
+  "risks": [
+    "只修 multipart 无法覆盖 Finder WebDAV PUT。",
+    "只修上传入口无法覆盖已经落库的旧 application/octet-stream 元数据。",
+    "服务端兜底应只覆盖空 MIME 或 application/octet-stream，避免改写明确类型。"
+  ],
+  "dependencies": [
+    "frontend/src/utils/uploadValidation.ts",
+    "frontend/src/services/fileUploadService.ts",
+    "backend/src/handlers/files/upload.rs",
+    "backend/src/api/webdav.rs",
+    "backend/src/handlers/files/download/mod.rs",
+    "backend/src/utils/mime.rs",
+    "frontend/src/utils/mimeType.ts",
+    "frontend Vitest",
+    "backend handler integration tests"
+  ],
+  "plan": [
+    "新增前端红灯测试覆盖 octet-stream .png 普通上传。",
+    "新增后端红灯测试覆盖 octet-stream multipart .png MIME 推断。",
+    "实现前端普通上传 File MIME 包装。",
+    "实现后端普通上传与 WebDAV PUT MIME 兜底推断。",
+    "实现前端预览类型判断对旧 octet-stream 元数据的文件名兜底。",
+    "实现后端 preview/download 响应对旧 octet-stream 元数据的文件名兜底。",
+    "运行定向与必要回归验证。"
+  ]
+}

@@ -16,6 +16,7 @@ pub mod cache;
 pub mod constant_time;
 pub mod crypto;
 pub mod error;
+pub mod mime;
 pub mod parse;
 pub mod response;
 pub mod thumbnail;
@@ -35,6 +36,9 @@ pub use time::{calculate_expiration, now_timestamp, parse_jwt_expiry};
 
 // Parse
 pub use parse::{parse_part_number, parse_uuid_list};
+
+// MIME
+pub use mime::{effective_file_mime_type, is_macos_appledouble_filename};
 
 // Response
 pub use response::{

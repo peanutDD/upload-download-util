@@ -11,15 +11,26 @@ fn watchdog_plan_marks_found_review_clean() {
 }
 
 #[test]
-fn watchdog_plan_marks_missing_review_as_human_block() {
+fn watchdog_plan_marks_missing_review_as_nonblocking_by_default() {
     let output = plan(&[
         ("GEMINI_REVIEW_FOUND", "false"),
         ("GEMINI_REVIEW_TIMEOUT_SECONDS", "120"),
     ]);
 
     assert_eq!(output["action"], "timeout");
-    assert_eq!(output["needs_human"], "true");
+    assert_eq!(output["needs_human"], "false");
     assert_eq!(output["timeout_seconds"], "120");
+}
+
+#[test]
+fn watchdog_plan_can_require_missing_review_as_human_block() {
+    let output = plan(&[
+        ("GEMINI_REVIEW_FOUND", "false"),
+        ("GEMINI_REVIEW_REQUIRED", "true"),
+    ]);
+
+    assert_eq!(output["action"], "timeout");
+    assert_eq!(output["needs_human"], "true");
 }
 
 #[test]
@@ -30,6 +41,10 @@ fn watchdog_timeout_comment_explains_no_new_issue_list() {
     assert!(
         script.contains("无法生成新的 Medium/Medium+/High/Critical 问题清单"),
         "quota or timeout comments must explain why no new issue list was generated"
+    );
+    assert!(
+        script.contains("Gemini review timeout is non-blocking in relaxed mode"),
+        "relaxed mode should document that Gemini timeout does not fail the kickoff check"
     );
 }
 

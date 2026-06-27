@@ -24,6 +24,7 @@ function renderFolder(
   onMobileFolderDrop = vi.fn(),
   onMobileFolderDragStart = vi.fn(),
   onMobileFolderDragEnd = vi.fn(),
+  onDrop = vi.fn(),
 ) {
   return render(
     <FolderCard
@@ -39,18 +40,90 @@ function renderFolder(
       onMobileFolderDrop={onMobileFolderDrop}
       onMobileFolderDragStart={onMobileFolderDragStart}
       onMobileFolderDragEnd={onMobileFolderDragEnd}
+      onDrop={onDrop}
     />,
   );
+}
+
+function mockPointerMedia(isDesktopPointer: boolean) {
+  Object.defineProperty(window, "matchMedia", {
+    configurable: true,
+    value: vi.fn((query: string) => ({
+      matches:
+        query === "(hover: hover) and (pointer: fine)" && isDesktopPointer,
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
 }
 
 describe("FolderCard drag move", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    mockPointerMedia(false);
   });
 
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
+  });
+
+  it("does not expose native folder drag on coarse pointer devices", () => {
+    renderFolder(sourceFolder);
+    const sourceCard = screen.getByTitle(sourceFolder.name).closest("[data-folder-id]");
+    const draggableThumb = sourceCard?.querySelector("[draggable='true']");
+
+    expect(draggableThumb).toBeNull();
+  });
+
+  it("keeps native folder drag on desktop pointer devices", () => {
+    mockPointerMedia(true);
+    renderFolder(sourceFolder);
+    const sourceCard = screen.getByTitle(sourceFolder.name).closest("[data-folder-id]");
+    const draggableThumb = sourceCard?.querySelector("[draggable='true']");
+
+    expect(draggableThumb).toBeTruthy();
+  });
+
+  it("prevents native long-press callout while a touch folder drag is pending", () => {
+    renderFolder(sourceFolder);
+    const sourceCard = screen.getByTitle(sourceFolder.name).closest("[data-folder-id]");
+
+    fireEvent.pointerDown(sourceCard as Element, {
+      pointerId: 5,
+      pointerType: "touch",
+      clientX: 16,
+      clientY: 16,
+      isPrimary: true,
+    });
+
+    expect(fireEvent.contextMenu(sourceCard as Element)).toBe(false);
+  });
+
+  it("accepts desktop file drops on the full folder card", () => {
+    const onDrop = vi.fn();
+    renderFolder(targetFolder, vi.fn(), vi.fn(), vi.fn(), onDrop);
+    const targetCard = screen.getByTitle(targetFolder.name).closest("[data-folder-id]");
+    expect(targetCard).toBeTruthy();
+
+    const dataTransfer = {
+      types: ["application/file-id"],
+      dropEffect: "none",
+      getData: vi.fn((type: string) =>
+        type === "application/file-id" ? "file-1" : "",
+      ),
+    };
+
+    fireEvent.dragOver(targetCard as Element, { dataTransfer });
+    fireEvent.drop(targetCard as Element, { dataTransfer });
+
+    expect(dataTransfer.dropEffect).toBe("move");
+    expect(onDrop).toHaveBeenCalledWith(targetFolder.id, ["file-1"], []);
   });
 
   it("starts mobile folder drag only after a long press and drops on the folder under release", () => {

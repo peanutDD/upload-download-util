@@ -186,23 +186,59 @@ impl Skill for BatchFixSkill {
         let issues = ctx.selected_issues.clone();
         for issue in issues {
             let issue_key = review_issue_key(&issue);
-            let patch = match generate_fix_patch(&issue, ctx, client).await {
+            if direct_full_file_repair_enabled() {
+                eprintln!("🛠️ [BatchFix] 完整文件直写修复 - 文件: {}", issue.file);
+                match apply_direct_full_file_repair(&issue, ctx, client, &issue_key).await {
+                    Ok(true) => {}
+                    Ok(false) => {}
+                    Err(e) => {
+                        ctx.fix_attempts.push(FixAttempt {
+                            round: ctx.current_round,
+                            issue_key,
+                            file: issue.file,
+                            stage: "file_replacement_direct".to_string(),
+                            success: false,
+                            reason: Some(e.to_string()),
+                        });
+                    }
+                }
+                continue;
+            }
+
+            let patch = match generate_fix_patch(&issue, ctx, client)
+                .await
+                .map_err(|e| e.to_string())
+            {
                 Ok(Some(patch)) => patch,
                 Ok(None) => {
                     eprintln!(
-                        "❌ [BatchFix] 补丁为空 - 文件: {}, 问题: {}, 原因: 模型未返回可应用的 SEARCH/REPLACE 或 unified diff",
+                        "❌ [BatchFix] 补丁为空，尝试完整文件兜底 - 文件: {}, 问题: {}, 原因: 模型未返回可应用的 SEARCH/REPLACE 或 unified diff",
                         issue.file, issue.description
                     );
                     ctx.fix_attempts.push(FixAttempt {
                         round: ctx.current_round,
-                        issue_key,
-                        file: issue.file,
+                        issue_key: issue_key.clone(),
+                        file: issue.file.clone(),
                         stage: "patch_generation".to_string(),
                         success: false,
                         reason: Some(
                             "模型未返回可应用的 SEARCH/REPLACE 或 unified diff".to_string(),
                         ),
                     });
+                    match apply_full_file_fallback(&issue, ctx, client, "", &issue_key).await {
+                        Ok(true) => {}
+                        Ok(false) => {}
+                        Err(e) => {
+                            ctx.fix_attempts.push(FixAttempt {
+                                round: ctx.current_round,
+                                issue_key,
+                                file: issue.file,
+                                stage: "file_replacement_fallback".to_string(),
+                                success: false,
+                                reason: Some(e.to_string()),
+                            });
+                        }
+                    }
                     continue;
                 }
                 Err(e) => {
@@ -216,7 +252,7 @@ impl Skill for BatchFixSkill {
                         file: issue.file,
                         stage: "patch_generation".to_string(),
                         success: false,
-                        reason: Some(e.to_string()),
+                        reason: Some(e),
                     });
                     continue;
                 }
@@ -291,13 +327,18 @@ impl Skill for BatchFixSkill {
                         &apply_reason,
                     )
                     .await
+                    .map_err(|e| e.to_string())
                     {
                         Ok(Some(patch)) => patch,
                         Ok(None) => {
+                            eprintln!(
+                                "❌ [BatchFix] 重试补丁为空，尝试完整文件兜底 - 文件: {}",
+                                issue.file
+                            );
                             ctx.fix_attempts.push(FixAttempt {
                                 round: ctx.current_round,
-                                issue_key,
-                                file: issue.file,
+                                issue_key: issue_key.clone(),
+                                file: issue.file.clone(),
                                 stage: "patch_generation_retry".to_string(),
                                 success: false,
                                 reason: Some(
@@ -305,17 +346,53 @@ impl Skill for BatchFixSkill {
                                         .to_string(),
                                 ),
                             });
+                            match apply_full_file_fallback(&issue, ctx, client, &patch, &issue_key)
+                                .await
+                            {
+                                Ok(true) => {}
+                                Ok(false) => {}
+                                Err(e) => {
+                                    ctx.fix_attempts.push(FixAttempt {
+                                        round: ctx.current_round,
+                                        issue_key,
+                                        file: issue.file,
+                                        stage: "file_replacement_fallback".to_string(),
+                                        success: false,
+                                        reason: Some(e.to_string()),
+                                    });
+                                }
+                            }
                             continue;
                         }
-                        Err(e) => {
+                        Err(retry_error) => {
+                            eprintln!(
+                                "❌ [BatchFix] 重试补丁生成失败，尝试完整文件兜底 - 文件: {}, 原因: {}",
+                                issue.file, retry_error
+                            );
                             ctx.fix_attempts.push(FixAttempt {
                                 round: ctx.current_round,
-                                issue_key,
-                                file: issue.file,
+                                issue_key: issue_key.clone(),
+                                file: issue.file.clone(),
                                 stage: "patch_generation_retry".to_string(),
                                 success: false,
-                                reason: Some(e.to_string()),
+                                reason: Some(retry_error),
                             });
+                            match apply_full_file_fallback(&issue, ctx, client, &patch, &issue_key)
+                                .await
+                            {
+                                Ok(true) => {}
+                                Ok(false) => {}
+                                Err(e) => {
+                                    ctx.fix_attempts.push(FixAttempt {
+                                        round: ctx.current_round,
+                                        issue_key,
+                                        file: issue.file,
+                                        stage: "file_replacement_fallback".to_string(),
+                                        success: false,
+                                        reason: Some(e.to_string()),
+                                    });
+                                }
+                            }
                             continue;
                         }
                     };
@@ -476,8 +553,26 @@ impl Skill for SecurityCheckSkill {
             let system_prompt = "你是一个安全审计专家。请检查代码是否存在注入、密钥泄露或严重逻辑漏洞。\n仅输出严格 JSON，不要 markdown，不要解释。Schema: {\"passed\": true, \"reason\": \"原因\"}";
             let user_prompt = format!("文件: {}\n内容: \n```\n{}\n```", file, content);
 
-            let result = client.call(system_prompt, &user_prompt).await?;
-            let audit = parse_security_audit(&result)?;
+            let result = match client.call(system_prompt, &user_prompt).await {
+                Ok(result) => result,
+                Err(e) => {
+                    all_passed = false;
+                    let finding = format!("{}: SecurityCheck 执行失败或超时：{}", file, e);
+                    ctx.security_findings.push(finding.clone());
+                    eprintln!("⚠️ 文件 {} 未通过安全扫描: {}", file, finding);
+                    continue;
+                }
+            };
+            let audit = match parse_security_audit(&result) {
+                Ok(audit) => audit,
+                Err(e) => {
+                    all_passed = false;
+                    let finding = format!("{}: SecurityCheck 输出不可解析：{}", file, e);
+                    ctx.security_findings.push(finding.clone());
+                    eprintln!("⚠️ 文件 {} 未通过安全扫描: {}", file, finding);
+                    continue;
+                }
+            };
             if !audit.passed {
                 all_passed = false;
                 let finding = format!("{}: {}", file, audit.reason);
@@ -510,12 +605,33 @@ impl Skill for QualityScoreSkill {
             ctx.fixed_files, ctx.raw_input
         );
 
-        let first = client.call(system_prompt, &user_prompt).await?;
+        let first = match client.call(system_prompt, &user_prompt).await {
+            Ok(first) => first,
+            Err(e) => {
+                ctx.quality_score = 0;
+                ctx.quality_score_available = false;
+                ctx.quality_score_reason = Some(format!("质量评分执行失败或超时：{}", e));
+                eprintln!("⚠️ 质量评分不可用: {}", e);
+                return Ok(());
+            }
+        };
         let parsed = match parse_quality_score(&first) {
             Ok(score) => Ok(score),
             Err(first_err) => {
                 eprintln!("⚠️ 质量评分解析失败，正在重试: {}", first_err);
-                let retry = client.call(system_prompt, &user_prompt).await?;
+                let retry = match client.call(system_prompt, &user_prompt).await {
+                    Ok(retry) => retry,
+                    Err(e) => {
+                        ctx.quality_score = 0;
+                        ctx.quality_score_available = false;
+                        ctx.quality_score_reason = Some(format!(
+                            "首次解析失败: {}; 重试执行失败或超时: {}",
+                            first_err, e
+                        ));
+                        eprintln!("⚠️ 质量评分不可用: {}", e);
+                        return Ok(());
+                    }
+                };
                 parse_quality_score(&retry).map_err(|second_err| {
                     format!("首次解析失败: {}; 重试解析失败: {}", first_err, second_err)
                 })
@@ -628,7 +744,15 @@ impl Skill for FeedbackSkill {
             };
             let score_info = quality_score_label(ctx);
 
-            repo::commit_and_push_in(&ctx.repo_root, &ctx.fixed_files, true)?;
+            if let Err(error) = repo::commit_and_push_in(&ctx.repo_root, &ctx.fixed_files, true) {
+                let explanation = format!("自动修复提交前验证或推送失败：{}", error);
+                ctx.push_blocked = true;
+                if !ctx.pending_explanations.contains(&explanation) {
+                    ctx.pending_explanations.push(explanation.clone());
+                }
+                eprintln!("⚠️ [AutoFix] {}", explanation);
+                return Ok(());
+            }
 
             let gh_msg = format!(
                 "🤖 **Codex 自动修复完成**\n\n{}\n{}\n{}\n\n✅ 已修复文件：\n{}{}{}",
@@ -1156,6 +1280,15 @@ async fn generate_retry_fix_patch(
     }
 }
 
+fn direct_full_file_repair_enabled() -> bool {
+    env::var("CODEX_AUTO_FIX_DIRECT_FULL_FILE")
+        .map(|value| {
+            let value = value.trim().to_ascii_lowercase();
+            matches!(value.as_str(), "1" | "true" | "yes" | "on")
+        })
+        .unwrap_or(false)
+}
+
 async fn apply_full_file_fallback(
     issue: &ReviewIssue,
     ctx: &mut SkillContext,
@@ -1231,6 +1364,50 @@ async fn apply_full_file_fallback(
         stage: "file_replacement_fallback".to_string(),
         success: true,
         reason: Some("fix_method:full_file_replacement".to_string()),
+    });
+    Ok(true)
+}
+
+async fn apply_direct_full_file_repair(
+    issue: &ReviewIssue,
+    ctx: &mut SkillContext,
+    client: &CodexClient,
+    issue_key: &str,
+) -> Result<bool, Box<dyn std::error::Error>> {
+    if let Some(reason) = full_file_fallback_block_reason(issue)? {
+        ctx.fix_attempts.push(FixAttempt {
+            round: ctx.current_round,
+            issue_key: issue_key.to_string(),
+            file: issue.file.clone(),
+            stage: "file_replacement_direct".to_string(),
+            success: false,
+            reason: Some(reason),
+        });
+        return Ok(false);
+    }
+
+    let Some(replacement) = generate_replacement_file(issue, ctx, client, "").await? else {
+        ctx.fix_attempts.push(FixAttempt {
+            round: ctx.current_round,
+            issue_key: issue_key.to_string(),
+            file: issue.file.clone(),
+            stage: "file_replacement_direct".to_string(),
+            success: false,
+            reason: Some("完整文件直写未返回有效变更".to_string()),
+        });
+        return Ok(false);
+    };
+
+    repo::write_repo_file(&ctx.repo_root, &issue.file, &replacement)?;
+    ctx.fixed_files.push(issue.file.clone());
+    ctx.fixed_issue_keys.push(issue_key.to_string());
+    ctx.fix_attempts.push(FixAttempt {
+        round: ctx.current_round,
+        issue_key: issue_key.to_string(),
+        file: issue.file.clone(),
+        stage: "file_replacement_direct".to_string(),
+        success: true,
+        reason: Some("fix_method:direct_full_file_replacement".to_string()),
     });
     Ok(true)
 }

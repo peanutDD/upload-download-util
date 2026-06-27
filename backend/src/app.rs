@@ -5,8 +5,10 @@
 
 use std::time::Duration;
 
-use axum::http::StatusCode;
-use axum::routing::get;
+use axum::http::{Request, StatusCode};
+use axum::middleware::Next;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{any, get};
 use axum::Router;
 use tower::ServiceBuilder;
 use tower::{limit::ConcurrencyLimitLayer, load_shed::LoadShedLayer, BoxError};
@@ -71,6 +73,7 @@ where
             StatusCode::REQUEST_TIMEOUT,
             Duration::from_secs(120),
         ))
+        .layer(axum::middleware::from_fn(webdav_compat_headers))
         .layer(cors)
         .into_inner();
 
@@ -90,6 +93,9 @@ where
         .route("/metrics", get(metrics_handler))
         .route("/readyz", get(health::readiness_check))
         .merge(api::openapi::create_openapi_router())
+        .route("/dav/", any(api::webdav::handle_root))
+        .route("/dav", any(api::webdav::handle_root))
+        .nest("/dav", api::webdav::create_router())
         .nest("/api/v1", api::create_api_routes())
         .nest("/api", api::create_api_routes())
         .route_layer(axum::middleware::from_fn_with_state(
@@ -115,6 +121,36 @@ where
 }
 
 // ---------- CORS ----------
+
+async fn webdav_compat_headers(req: Request<axum::body::Body>, next: Next) -> Response {
+    let is_webdav = req.uri().path().starts_with("/dav");
+    if is_webdav && req.method() == axum::http::Method::OPTIONS {
+        return add_webdav_headers(StatusCode::NO_CONTENT.into_response());
+    }
+    let mut response = next.run(req).await;
+    if is_webdav {
+        response = add_webdav_headers(response);
+    }
+    response
+}
+
+fn add_webdav_headers(mut response: Response) -> Response {
+    response.headers_mut().insert(
+        axum::http::HeaderName::from_static("dav"),
+        axum::http::HeaderValue::from_static("1, 2"),
+    );
+    response.headers_mut().insert(
+        axum::http::HeaderName::from_static("ms-author-via"),
+        axum::http::HeaderValue::from_static("DAV"),
+    );
+    response.headers_mut().insert(
+        axum::http::header::ALLOW,
+        axum::http::HeaderValue::from_static(
+            "OPTIONS, PROPFIND, MKCOL, PUT, GET, HEAD, DELETE, MOVE, COPY, LOCK, UNLOCK",
+        ),
+    );
+    response
+}
 
 /// 根据配置创建 CORS 中间件层
 fn create_cors_layer(config: &Config) -> CorsLayer {

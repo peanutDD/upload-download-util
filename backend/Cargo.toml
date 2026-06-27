@@ -30,6 +30,7 @@ tempfile = "3.10"
 # Web framework
 axum = { version = "0.8", features = ["multipart", "json"] }
 bytes = "1.0"
+base64 = "0.22"
 tokio = { version = "1", features = ["full"] }
 tokio-util = { version = "0.7", features = ["io"] }
 tokio-stream = "0.1"
@@ -87,6 +88,7 @@ deadpool-redis = { version = "0.15", features = ["rt_tokio_1"] }
 fs2 = "0.4"
 httpdate = "1.0"
 percent-encoding = "2.3"
+quick-xml = "0.36.2"
 reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "gzip", "brotli", "deflate", "rustls-tls"] }
 url = "2.5"
 urlencoding = "2.1"
@@ -106,6 +108,7 @@ pdf-extract = "0.10"
 docx-lite = "0.1"
 # Text encoding detection
 encoding_rs = "0.8"
+tantivy = "0.26"
 
 # Random token generation
 rand = "0.9"

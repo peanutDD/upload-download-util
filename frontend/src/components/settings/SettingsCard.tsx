@@ -26,14 +26,16 @@ export default function SettingsCard({
       className={cn(
         // Reserve space for the fixed NavBar when using anchor links.
         "scroll-mt-[clamp(6.75rem,12.6vw,7rem)]",
-        "relative overflow-hidden rounded-[clamp(0.8rem,2vw,1rem)]",
+        "group/settings-card relative isolate overflow-hidden rounded-[clamp(0.8rem,2vw,1rem)]",
         "border border-[var(--settings-surface-border)] bg-[var(--settings-surface-bg)]",
         "shadow-[var(--settings-surface-shadow)]",
-        "backdrop-blur-md",
+        "backdrop-blur-md transition-[border-color,box-shadow,transform] duration-300",
+        "hover:border-[var(--settings-panel-border-hover)] hover:shadow-[var(--settings-surface-shadow)]",
         "text-[length:var(--settings-text-md)]",
         "p-[clamp(1rem,2.25vw,1.25rem)] sm:p-[clamp(1.25rem,2.7vw,1.5rem)]",
         className,
       )}
+      data-testid="settings-card-shell"
       data-oid="au1p9wx"
     >
       {/* Ambient glow + top hairline (match the Home / Nav style). */}
@@ -47,13 +49,17 @@ export default function SettingsCard({
         data-oid="ypzl8tm"
       />
 
+      <div className="pointer-events-none absolute inset-x-[clamp(1rem,2.25vw,1.25rem)] top-0 h-px bg-gradient-to-r from-transparent via-[var(--settings-surface-hairline)] to-transparent opacity-0 transition-opacity duration-300 group-hover/settings-card:opacity-60" />
+
+      <div className="pointer-events-none absolute inset-y-[clamp(1rem,2.25vw,1.25rem)] left-0 w-px bg-gradient-to-b from-transparent via-[var(--settings-surface-hairline)] to-transparent opacity-55" />
+
       <header
         className="relative z-10 flex items-start gap-[clamp(0.585rem,1.35vw,0.75rem)]"
         data-oid="07m066k"
       >
         {icon && (
           <div
-            className="mt-[clamp(0.0975rem,0.3vw,0.125rem)] shrink-0 rounded-[clamp(0.6rem,1.4vw,0.75rem)] border border-[var(--settings-chip-border)] bg-[var(--settings-chip-bg)] p-[clamp(0.39rem,0.9vw,0.5rem)] text-[var(--settings-chip-icon)]"
+            className="mt-[clamp(0.0975rem,0.3vw,0.125rem)] shrink-0 rounded-[clamp(0.6rem,1.4vw,0.75rem)] border border-[var(--settings-chip-border)] bg-[var(--settings-chip-bg)] p-[clamp(0.39rem,0.9vw,0.5rem)] text-[var(--settings-chip-icon)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0.75rem_1.75rem_rgba(16,185,129,0.08)] transition-[border-color,background-color,box-shadow] duration-300 group-hover/settings-card:border-[var(--settings-chip-border-hover)] group-hover/settings-card:bg-[var(--settings-chip-bg-hover)]"
             data-oid="9ktkh.m"
           >
             {icon}

@@ -24,6 +24,7 @@ pub mod organizations;
 pub mod proxy;
 pub mod share;
 pub mod telemetry;
+pub mod webdav;
 
 /// 返回 auth/files/folders/shares/tokens 聚合路由，供挂载到 `/api/v1` 与 `/api` 复用。
 pub fn create_api_routes() -> Router<AppState> {

@@ -1,0 +1,19 @@
+{
+  "date": "2026-05-13",
+  "task": "webdav-fulltext-ocr",
+  "workspace": "/Users/tyone/github/upload-download-util",
+  "worktree": "primary-checkout",
+  "assumptions": [
+    "Human explicitly requested implementation in the primary checkout.",
+    "OCR is optional and no system OCR dependencies are installed in this phase.",
+    "Tantivy local index is single-writer v1."
+  ],
+  "steps": [
+    "WebDAV auth/router TDD",
+    "Tantivy service TDD",
+    "Fulltext API and worker TDD",
+    "Settings WebDAV guidance",
+    "Constraints and quality score",
+    "Backend/frontend verification"
+  ]
+}

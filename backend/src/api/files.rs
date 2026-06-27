@@ -23,13 +23,13 @@ use crate::handlers::files::{
     batch_restore_files_handler, categories_handler, chunked_upload_abort_handler,
     chunked_upload_chunk_handler, chunked_upload_complete_handler, chunked_upload_init_handler,
     chunked_upload_status_handler, delete_file_handler, delete_version_handler,
-    download_file_handler, empty_trash_handler, get_file_version_handler,
+    download_file_handler, empty_trash_handler, fulltext_search_handler, get_file_version_handler,
     gif_video_preview_handler, hls_asset_handler, hls_playlist_handler, hls_prepare_handler,
     hls_status_handler, instant_upload_handler, list_file_versions_handler, list_files_handler,
-    list_trash_handler, permanently_delete_file_handler, preview_file_handler, rename_file_handler,
-    restore_file_handler, restore_version_handler, semantic_search_handler, storage_usage_handler,
-    thumbnail_file_handler, update_version_label_handler, upload_file_handler,
-    video_preview_prepare_handler, video_preview_status_handler,
+    list_trash_handler, ocr_status_handler, permanently_delete_file_handler, preview_file_handler,
+    rename_file_handler, restore_file_handler, restore_version_handler, semantic_search_handler,
+    storage_usage_handler, thumbnail_file_handler, update_version_label_handler,
+    upload_file_handler, video_preview_prepare_handler, video_preview_status_handler,
 };
 use crate::AppState;
 
@@ -176,6 +176,8 @@ pub fn create_router() -> Router<AppState> {
         )
         .route("/storage-usage", get(storage_usage_handler))
         .route("/categories", get(categories_handler))
+        .route("/search/fulltext", get(fulltext_search_handler))
+        .route("/search/ocr/status", get(ocr_status_handler))
         .route("/search/semantic", get(semantic_search_handler))
         .route(
             "/trash",

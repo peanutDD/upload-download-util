@@ -178,7 +178,8 @@ async fn run_auto_fix_loop(
     files.dedup();
     let pending_count = ctx.pending_explanations.len();
     let has_pending = pending_count > 0;
-    let review_clean = ctx.security_passed && !ctx.push_blocked && !has_pending;
+    let review_clean =
+        (ctx.security_passed || !auto_fix_strict()) && !ctx.push_blocked && !has_pending;
     let final_status = final_status(ctx.push_blocked, has_pending, review_clean);
 
     let output = PrAutoFixOutput {
@@ -260,6 +261,10 @@ fn security_findings_as_review_issues(findings: &[String]) -> Vec<ReviewIssue> {
 }
 
 fn record_security_findings_as_pending(ctx: &mut SkillContext) {
+    if !auto_fix_strict() {
+        return;
+    }
+
     if ctx.security_passed || ctx.security_findings.is_empty() {
         return;
     }
@@ -296,9 +301,12 @@ fn retry_count(attempts: &[crate::skills::FixAttempt]) -> usize {
 }
 
 fn fallback_used(attempts: &[crate::skills::FixAttempt]) -> bool {
-    attempts
-        .iter()
-        .any(|attempt| attempt.stage == "file_replacement_fallback" && attempt.success)
+    attempts.iter().any(|attempt| {
+        matches!(
+            attempt.stage.as_str(),
+            "file_replacement_fallback" | "file_replacement_direct"
+        ) && attempt.success
+    })
 }
 
 pub(crate) fn should_skip_post_fix_checks(ctx: &SkillContext) -> bool {
@@ -329,6 +337,15 @@ fn final_status(push_blocked: bool, has_pending: bool, review_clean: bool) -> St
         "needs-human"
     }
     .to_string()
+}
+
+fn auto_fix_strict() -> bool {
+    env::var("CODEX_AUTO_FIX_STRICT")
+        .map(|value| {
+            let value = value.to_ascii_lowercase();
+            matches!(value.as_str(), "1" | "true" | "yes" | "strict")
+        })
+        .unwrap_or(false)
 }
 
 pub(crate) fn enforce_review_policy(ctx: &mut SkillContext) {

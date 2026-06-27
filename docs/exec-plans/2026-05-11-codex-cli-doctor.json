@@ -1,0 +1,31 @@
+{
+  "date": "2026-05-11",
+  "task": "codex-cli-doctor",
+  "goal": "Detect stale local codex-cli installations after source updates and refresh the local binary.",
+  "assumptions": [
+    "GitHub Actions uses cargo run and is not dependent on the user's stale ~/.cargo/bin binary.",
+    "Local terminal usage resolves codex-auto-fix and codex from ~/.cargo/bin.",
+    "A doctor command can make PATH and source freshness issues visible without mutating secrets or configuration."
+  ],
+  "risks": [
+    "cargo install --force overwrites local codex and codex-auto-fix binaries.",
+    "CODEX_AGENT_COMMAND may be intentionally unset in a developer shell.",
+    "PATH can resolve to a different binary than the one currently running."
+  ],
+  "steps": [
+    "Add a failing doctor JSON integration test.",
+    "Implement reusable doctor report generation.",
+    "Wire doctor into codex and codex-auto-fix.",
+    "Document the command and freshness constraint.",
+    "Reinstall the local CLI.",
+    "Run fmt, tests, clippy, and doctor verification."
+  ],
+  "verification": [
+    "cargo test --manifest-path scripts/codex-cli/Cargo.toml --test doctor",
+    "cargo fmt --manifest-path scripts/codex-cli/Cargo.toml -- --check",
+    "cargo test --manifest-path scripts/codex-cli/Cargo.toml",
+    "cargo clippy --manifest-path scripts/codex-cli/Cargo.toml --all-targets -- -D warnings",
+    "cargo install --path scripts/codex-cli --force",
+    "codex-auto-fix doctor --json"
+  ]
+}

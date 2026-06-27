@@ -16,7 +16,7 @@ use uuid::Uuid;
 use crate::{
     constants::API_TOKEN_CHARSET,
     models::api_token::{ApiToken, ApiTokenListItem, CreateApiTokenRequest},
-    repositories::ApiTokensRepo,
+    repositories::{api_tokens::CreateApiTokenRecord, ApiTokensRepo, FoldersRepo},
     utils::AppError,
 };
 
@@ -25,6 +25,15 @@ type HmacSha256 = Hmac<Sha256>;
 pub struct ApiTokenService {
     pool: PgPool,
     secrets: Vec<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ApiTokenClaims {
+    pub token_id: Uuid,
+    pub user_id: Uuid,
+    pub webdav_enabled: bool,
+    pub webdav_read_only: bool,
+    pub webdav_root_folder_id: Option<Uuid>,
 }
 
 impl ApiTokenService {
@@ -85,6 +94,14 @@ impl ApiTokenService {
         req: CreateApiTokenRequest,
     ) -> Result<(String, ApiToken), AppError> {
         let repo = ApiTokensRepo::new(&self.pool);
+        if let Some(root_folder_id) = req.webdav_root_folder_id {
+            let folders = FoldersRepo::new(&self.pool);
+            if !folders.exists(root_folder_id, user_id).await? {
+                return Err(AppError::Validation(
+                    "WebDAV root folder does not exist".to_string(),
+                ));
+            }
+        }
 
         // 生成 token（只显示一次）
         let token = Self::generate_token();
@@ -98,7 +115,16 @@ impl ApiTokenService {
 
         // 创建 token
         let api_token = repo
-            .create(user_id, &req.name, &token_hash, &token_prefix, expires_at)
+            .create(CreateApiTokenRecord {
+                user_id,
+                name: &req.name,
+                token_hash: &token_hash,
+                token_prefix: &token_prefix,
+                expires_at,
+                webdav_enabled: req.webdav_enabled.unwrap_or(true),
+                webdav_read_only: req.webdav_read_only.unwrap_or(false),
+                webdav_root_folder_id: req.webdav_root_folder_id,
+            })
             .await?;
 
         Ok((token, api_token))
@@ -106,6 +132,11 @@ impl ApiTokenService {
 
     /// 验证 token 并返回用户 ID
     pub async fn verify_token(&self, token: &str) -> Result<Uuid, AppError> {
+        Ok(self.verify_token_claims(token).await?.user_id)
+    }
+
+    /// 验证 token 并返回 WebDAV/API scope claims
+    pub async fn verify_token_claims(&self, token: &str) -> Result<ApiTokenClaims, AppError> {
         let repo = ApiTokensRepo::new(&self.pool);
         for secret in self.secrets.iter() {
             let token_hash = Self::hash_token_with(secret, token)?;
@@ -116,7 +147,13 @@ impl ApiTokenService {
                     }
                 }
                 repo.update_last_used(api_token.id).await?;
-                return Ok(api_token.user_id);
+                return Ok(ApiTokenClaims {
+                    token_id: api_token.id,
+                    user_id: api_token.user_id,
+                    webdav_enabled: api_token.webdav_enabled,
+                    webdav_read_only: api_token.webdav_read_only,
+                    webdav_root_folder_id: api_token.webdav_root_folder_id,
+                });
             }
         }
 

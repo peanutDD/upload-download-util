@@ -85,6 +85,7 @@ cargo build --release
 
 **推荐阅读顺序**
 
+- [实现技术文档](implementation.md)
 - [架构与模块](design-docs/architecture.md)
 - [文件详解](file-inventory.md)
 - [Pipeline / Skills 设计](design-docs/pipeline.md)

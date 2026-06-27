@@ -11,6 +11,17 @@ use crate::utils::AppError;
 
 // 确保 ApiToken 被导入用于查询
 
+pub struct CreateApiTokenRecord<'a> {
+    pub user_id: Uuid,
+    pub name: &'a str,
+    pub token_hash: &'a str,
+    pub token_prefix: &'a str,
+    pub expires_at: Option<DateTime<Utc>>,
+    pub webdav_enabled: bool,
+    pub webdav_read_only: bool,
+    pub webdav_root_folder_id: Option<Uuid>,
+}
+
 /// API Token 仓库
 pub struct ApiTokensRepo<'a> {
     pool: &'a PgPool,
@@ -52,26 +63,25 @@ impl<'a> ApiTokensRepo<'a> {
     // ========================================================================
 
     /// 创建 API Token
-    pub async fn create(
-        &self,
-        user_id: Uuid,
-        name: &str,
-        token_hash: &str,
-        token_prefix: &str,
-        expires_at: Option<DateTime<Utc>>,
-    ) -> Result<ApiToken, AppError> {
+    pub async fn create(&self, record: CreateApiTokenRecord<'_>) -> Result<ApiToken, AppError> {
         sqlx::query_as::<_, ApiToken>(
             r#"
-            INSERT INTO api_tokens (user_id, name, token_hash, token_prefix, expires_at)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO api_tokens (
+                user_id, name, token_hash, token_prefix, expires_at,
+                webdav_enabled, webdav_read_only, webdav_root_folder_id
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING *
             "#,
         )
-        .bind(user_id)
-        .bind(name)
-        .bind(token_hash)
-        .bind(token_prefix)
-        .bind(expires_at)
+        .bind(record.user_id)
+        .bind(record.name)
+        .bind(record.token_hash)
+        .bind(record.token_prefix)
+        .bind(record.expires_at)
+        .bind(record.webdav_enabled)
+        .bind(record.webdav_read_only)
+        .bind(record.webdav_root_folder_id)
         .fetch_one(self.pool)
         .await
         .map_err(AppError::from)

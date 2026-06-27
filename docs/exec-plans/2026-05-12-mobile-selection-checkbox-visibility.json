@@ -1,0 +1,26 @@
+{
+  "date": "2026-05-12",
+  "task": "mobile selection checkbox visibility",
+  "intent": "Fix the mobile regression where the top-left selection checkbox on file/folder cards is missing unless a hover state exists.",
+  "assumptions": [
+    "The checkbox DOM is still rendered by FileCard and FolderCard.",
+    "The invisible state is caused by hover-only reveal classes in SelectionCheckbox.",
+    "File and folder cards share the same checkbox component, so fixing the common visibility rule covers both card types."
+  ],
+  "risks": [
+    "Making the checkbox always visible globally could change desktop hover behavior.",
+    "A component-level fix without CSS media scoping could leave future hover-only regressions hard to detect."
+  ],
+  "dependencies": [
+    "frontend/src/components/common/form/SelectionCheckbox.tsx",
+    "frontend/src/components/files/list/FileListGlass.css",
+    "frontend/src/components/files/grid/FileCardMobileDragMove.test.tsx"
+  ],
+  "steps": [
+    "Add a failing coarse-pointer regression test for unselected checkbox visibility.",
+    "Replace unconditional invisible group-hover:visible with a semantic reveal class.",
+    "Scope hover-only hiding to @media (hover: hover) and (pointer: fine).",
+    "Add permanent constraint and quality score entry.",
+    "Run focused tests, full frontend tests, lint, token checks, build, and diff whitespace checks."
+  ]
+}

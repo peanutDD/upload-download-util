@@ -19,6 +19,7 @@ use crate::repositories::{
 use crate::services::cache::{files::FileCacheService, CacheService};
 use crate::services::embeddings::EmbeddingService;
 use crate::services::file::FileService;
+use crate::services::fulltext_search::SearchIndexService;
 use crate::services::storage::StorageBackend;
 use crate::services::task_queue::{DynTaskQueue, TaskQueue};
 
@@ -56,6 +57,8 @@ pub struct AppState {
     pub file_service: Arc<FileService>,
     /// 后台任务队列（GIF 转码、缩略图重建等）
     pub task_queue: DynTaskQueue,
+    /// Tantivy 全文搜索索引（应用启动时初始化，避免请求内重复打开目录）。
+    pub search_index: Arc<SearchIndexService>,
     /// 嵌入服务（用于语义搜索）
     pub embedding_service: Option<Arc<EmbeddingService>>,
     pub zip_build_semaphore: Arc<Semaphore>,
@@ -117,6 +120,19 @@ impl AppState {
         ));
 
         let task_queue: DynTaskQueue = Arc::new(TaskQueue::new(Arc::new(pool.clone())));
+        let search_index = Arc::new(
+            SearchIndexService::open_or_create(&config.search.fulltext_index_path).unwrap_or_else(
+                |error| {
+                    tracing::error!(
+                        error = %error,
+                        path = %config.search.fulltext_index_path,
+                        "failed to open fulltext index, falling back to in-memory index"
+                    );
+                    SearchIndexService::open_in_memory()
+                        .expect("fallback in-memory fulltext index should initialize")
+                },
+            ),
+        );
         let zip_build_semaphore = Arc::new(Semaphore::new(config.tasks.zip_build_max_concurrent));
 
         Self {
@@ -128,6 +144,7 @@ impl AppState {
             cache: CacheService::new(),
             file_service,
             task_queue,
+            search_index,
             embedding_service,
             zip_build_semaphore,
         }

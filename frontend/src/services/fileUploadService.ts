@@ -212,8 +212,16 @@ export const fileUploadService = {
     folderId?: string | null,
     options: UploadOptions = {},
   ): Promise<UploadResult> {
+    const mimeType = getUploadMimeType(file);
+    const uploadFile =
+      file.type.trim().toLowerCase() === mimeType
+        ? file
+        : new File([file], file.name, {
+            type: mimeType,
+            lastModified: file.lastModified,
+          });
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', uploadFile);
     if (folderId) formData.append('folder_id', folderId);
 
     const response = await api.post<UploadResult>('/api/files/upload', formData, {

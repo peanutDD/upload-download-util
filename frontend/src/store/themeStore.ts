@@ -5,7 +5,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-type Theme = 'light' | 'dark' | 'purple';
+export type Theme = 'light' | 'dark' | 'purple' | 'terminal' | 'portfolio';
 
 interface ThemeState {
   theme: Theme;
@@ -18,7 +18,7 @@ function applyTheme(effectiveTheme: Theme) {
   if (typeof document === 'undefined') return;
   const root = document.documentElement;
   root.setAttribute('data-theme', effectiveTheme);
-  root.classList.remove('light', 'purple');
+  root.classList.remove('light', 'purple', 'terminal', 'portfolio');
   if (effectiveTheme === 'light') {
     root.classList.remove('dark');
     root.classList.add('light');
@@ -27,7 +27,8 @@ function applyTheme(effectiveTheme: Theme) {
 
   root.classList.add('dark');
   if (effectiveTheme === 'purple') root.classList.add('purple');
-  else root.classList.remove('purple');
+  if (effectiveTheme === 'terminal') root.classList.add('terminal');
+  if (effectiveTheme === 'portfolio') root.classList.add('portfolio');
 }
 
 function resolveMacOSTitlebarColor(): string | [number, number, number] | null {
@@ -77,7 +78,16 @@ export const useThemeStore = create<ThemeState>()(
         },
         toggleTheme: () => {
           const current = get().effectiveTheme;
-          const nextTheme: Theme = current === 'dark' ? 'light' : current === 'light' ? 'purple' : 'dark';
+          const nextTheme: Theme =
+            current === 'dark'
+              ? 'light'
+              : current === 'light'
+                ? 'purple'
+                : current === 'purple'
+                  ? 'terminal'
+                  : current === 'terminal'
+                    ? 'portfolio'
+                    : 'dark';
           const effectiveTheme: Theme = nextTheme;
           applyTheme(effectiveTheme);
           void applyMacOSWindowBackground();

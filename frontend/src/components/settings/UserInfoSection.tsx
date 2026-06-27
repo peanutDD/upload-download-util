@@ -233,7 +233,7 @@ const UserInfoSection = memo(function UserInfoSection() {
       <form
         onSubmit={handleSubmit(onSubmit)}
         noValidate
-        className="space-y-[clamp(0.78rem,1.8vw,1rem)]"
+        className="grid gap-[clamp(0.78rem,1.8vw,1rem)]"
         data-oid=".gy:f9i"
       >
         <div data-oid="pqfg1l8">
@@ -281,7 +281,9 @@ const UserInfoSection = memo(function UserInfoSection() {
               disabled={
                 !canSendCode || sendingCode || sendCodeCooldown > 0 || loading
               }
-              className={settingsSecondaryButtonClass("shrink-0 whitespace-nowrap")}
+              className={settingsSecondaryButtonClass(
+                "shrink-0 whitespace-nowrap sm:min-w-[6.5rem]",
+              )}
               data-oid="zvpvalp"
             >
               {sendCodeCooldown > 0
@@ -344,14 +346,19 @@ const UserInfoSection = memo(function UserInfoSection() {
               : "-"}
           </p>
         </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className={settingsPrimaryButtonClass("w-full")}
-          data-oid="-o5ufhh"
+        <div
+          data-testid="settings-account-actions"
+          className="mt-auto flex justify-end border-t border-[var(--settings-panel-border)] pt-[clamp(0.78rem,1.8vw,1rem)]"
         >
-          {loading ? "Saving..." : "Save"}
-        </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className={settingsPrimaryButtonClass("w-full sm:w-auto sm:min-w-[8rem]")}
+            data-oid="-o5ufhh"
+          >
+            {loading ? "Saving..." : "Save"}
+          </button>
+        </div>
       </form>
     </SettingsCard>
   );

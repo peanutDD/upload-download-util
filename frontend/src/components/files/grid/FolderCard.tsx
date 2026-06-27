@@ -5,6 +5,7 @@ import { cn } from "../../../utils/cn";
 import { findFolderDropTargetFromPoint } from "../../../utils/dropTargets";
 import { stopDragAutoScroll, updateDragAutoScroll } from "../../../utils/dragAutoScroll";
 import { SelectionCheckbox } from "../../common/form/SelectionCheckbox";
+import { useNativeDragEnabled } from "../../../hooks/useNativeDragEnabled";
 
 interface FolderCardProps {
   folder: Folder;
@@ -58,6 +59,7 @@ const FolderCard = memo(function FolderCard({
   onToggleMenu,
   onCloseMenu,
 }: FolderCardProps) {
+  const nativeDragEnabled = useNativeDragEnabled();
   const [isDragOver, setIsDragOver] = useState(false);
   const [isMobileDragging, setIsMobileDragging] = useState(false);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -83,10 +85,23 @@ const FolderCard = memo(function FolderCard({
   };
 
   const handleDragStart = (e: React.DragEvent) => {
+    if (!nativeDragEnabled) {
+      e.preventDefault();
+      return;
+    }
     e.dataTransfer.setData("application/folder-id", folder.id);
     e.dataTransfer.effectAllowed = "move";
     onDragStart?.(e, folder);
   };
+
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!nativeDragEnabled && pointerStartRef.current) {
+        e.preventDefault();
+      }
+    },
+    [nativeDragEnabled],
+  );
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -224,6 +239,10 @@ const FolderCard = memo(function FolderCard({
       onPointerMove={handlePointerMove}
       onPointerUp={finishMobileFolderDrag}
       onPointerCancel={handlePointerCancel}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      onContextMenu={handleContextMenu}
       onDoubleClick={handleDoubleClick}
       role="button"
       tabIndex={0}
@@ -236,11 +255,8 @@ const FolderCard = memo(function FolderCard({
         {/* 文件夹图标：使用和视频文件相同的主色（text-purple-400），但缩小尺寸避免过于抢眼 */}
         <div
           className="relative mb-[clamp(0.6rem,1.4vw,0.75rem)] flex aspect-square items-center justify-center rounded-[clamp(0.2rem,0.6vw,0.25rem)] bg-[var(--file-card-thumb-bg)]"
-          draggable
+          draggable={nativeDragEnabled}
           onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
           data-oid="69zytmi"
         >
           <SelectionCheckbox

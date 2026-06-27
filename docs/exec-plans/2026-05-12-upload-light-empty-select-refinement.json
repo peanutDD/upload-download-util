@@ -1,0 +1,26 @@
+{
+  "date": "2026-05-12",
+  "task": "upload light empty select refinement",
+  "intent": "Refine the light-mode empty upload dialog button styling after the initial graphite/mint Select files treatment felt too heavy.",
+  "assumptions": [
+    "The main concern is the light-mode Select files action before any file is queued.",
+    "Dark and purple empty-state palettes should remain unchanged.",
+    "The light button should feel luminous and clean while preserving the upload dialog's tech-glass language."
+  ],
+  "risks": [
+    "Making the CTA too plain white can remove the app's visual character.",
+    "Keeping too much green/graphite makes it look muddy against the light panel."
+  ],
+  "dependencies": [
+    "frontend/src/components/files/upload/UploadDialog.css",
+    "frontend/src/components/files/upload/UploadDialogLayout.test.ts",
+    "docs/evidence/upload-empty-buttons-light.png"
+  ],
+  "steps": [
+    "Add a failing test requiring a luminous light-mode select button palette.",
+    "Replace the light Select files gradient with a white/mint/cyan opal treatment and dark text.",
+    "Slightly soften light-mode cancel/attach and URL upload support colors.",
+    "Re-capture light visual evidence.",
+    "Run focused test, lint, build, and whitespace checks."
+  ]
+}

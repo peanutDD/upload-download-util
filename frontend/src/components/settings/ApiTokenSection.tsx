@@ -1,5 +1,5 @@
 import { memo, useCallback, useState, useMemo } from "react";
-import { Key, Copy, Trash2, X } from "lucide-react";
+import { Check, Key, Copy, Trash2, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -22,6 +22,9 @@ import { getErrorMessage } from "../../utils/error";
 interface TokenFormValues {
   name: string;
   expires: number | "";
+  webdavEnabled: boolean;
+  webdavReadOnly: boolean;
+  webdavRootFolderId: string;
 }
 
 const ApiTokenSection = memo(function ApiTokenSection() {
@@ -43,6 +46,19 @@ const ApiTokenSection = memo(function ApiTokenSection() {
         z.literal(""),
         z.number().int().min(1, "Expires must be at least 1 day"),
       ]),
+      webdavEnabled: z.boolean(),
+      webdavReadOnly: z.boolean(),
+      webdavRootFolderId: z
+        .string()
+        .trim()
+        .refine(
+          (value) =>
+            value === "" ||
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+              value,
+            ),
+          "Root folder must be a folder UUID",
+        ),
     });
   }, []);
 
@@ -53,7 +69,13 @@ const ApiTokenSection = memo(function ApiTokenSection() {
     formState: { errors },
   } = useForm<TokenFormValues>({
     resolver: zodResolver(tokenSchema),
-    defaultValues: { name: "", expires: "" },
+    defaultValues: {
+      name: "",
+      expires: "",
+      webdavEnabled: true,
+      webdavReadOnly: false,
+      webdavRootFolderId: "",
+    },
     mode: "onBlur",
   });
 
@@ -64,6 +86,12 @@ const ApiTokenSection = memo(function ApiTokenSection() {
       {
         name: data.name.trim(),
         expires_in_days: data.expires === "" ? undefined : Number(data.expires),
+        webdav_enabled: data.webdavEnabled,
+        webdav_read_only: data.webdavReadOnly,
+        webdav_root_folder_id:
+          data.webdavRootFolderId.trim() === ""
+            ? null
+            : data.webdavRootFolderId.trim(),
       },
       {
         onSuccess: (response) => {
@@ -187,7 +215,7 @@ const ApiTokenSection = memo(function ApiTokenSection() {
         <form
           onSubmit={handleSubmit(handleCreateToken)}
           noValidate
-          className="grid gap-[clamp(0.78rem,1.8vw,1rem)] sm:grid-cols-2"
+          className="grid gap-[clamp(0.78rem,1.8vw,1rem)] lg:grid-cols-[minmax(0,1fr)_minmax(12rem,0.42fr)]"
           data-oid="l01z3qa"
         >
           <div data-oid="gier:.r">
@@ -232,14 +260,92 @@ const ApiTokenSection = memo(function ApiTokenSection() {
               <p className={settingsErrorClass()}>{errors.expires.message}</p>
             )}
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className={settingsPrimaryButtonClass("w-full sm:col-span-2")}
-            data-oid="qabeet7"
-          >
-            {createTokenMutation.isPending ? "Creating..." : "Create token"}
-          </button>
+          <div className="grid gap-[clamp(0.585rem,1.35vw,0.75rem)] sm:grid-cols-2 lg:col-span-2">
+            <label
+              data-testid="webdav-enabled-option"
+              className="group relative grid cursor-pointer grid-cols-[clamp(2.1rem,4vw,2.4rem)_minmax(0,1fr)] gap-[clamp(0.585rem,1.35vw,0.75rem)] rounded-[clamp(0.7rem,1.6vw,0.875rem)] border border-[var(--settings-panel-border)] bg-[var(--settings-panel-bg)] px-[clamp(0.78rem,1.8vw,1rem)] py-[clamp(0.68rem,1.5vw,0.85rem)] text-[var(--settings-panel-value)] transition-colors hover:border-[var(--settings-panel-border-hover)] hover:bg-[var(--settings-kpi-bg)] has-[:checked]:border-[var(--settings-secondary-border-hover)] has-[:checked]:bg-[var(--settings-secondary-bg)]"
+            >
+              <input
+                type="checkbox"
+                {...register("webdavEnabled")}
+                className="peer sr-only"
+              />
+              <span
+                aria-hidden="true"
+                className="mt-[clamp(0.1rem,0.25vw,0.15rem)] flex h-[clamp(1.7rem,3.2vw,1.9rem)] w-[clamp(1.7rem,3.2vw,1.9rem)] items-center justify-center rounded-[clamp(0.55rem,1.2vw,0.65rem)] border border-[var(--settings-chip-border)] bg-[var(--settings-form-input-bg)] text-transparent shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-all peer-checked:border-[var(--settings-secondary-border-hover)] peer-checked:bg-[var(--settings-secondary-bg-hover)] peer-checked:text-[var(--settings-secondary-text)] peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--settings-form-input-ring)]"
+              >
+                <Check
+                  className="h-[clamp(0.9rem,1.8vw,1rem)] w-[clamp(0.9rem,1.8vw,1rem)] stroke-[2.6]"
+                  aria-hidden="true"
+                />
+              </span>
+              <span className="min-w-0">
+                <span className="font-brand block text-[length:var(--settings-text-sm)] font-semibold tracking-wide">
+                  Enable WebDAV
+                </span>
+                <span className="font-brand mt-[clamp(0.195rem,0.45vw,0.25rem)] block text-[length:var(--settings-text-xs)] leading-relaxed tracking-wide text-[var(--settings-panel-muted)]">
+                  Allow this token to connect through the WebDAV endpoint.
+                </span>
+              </span>
+            </label>
+            <label
+              data-testid="webdav-readonly-option"
+              className="group relative grid cursor-pointer grid-cols-[clamp(2.1rem,4vw,2.4rem)_minmax(0,1fr)] gap-[clamp(0.585rem,1.35vw,0.75rem)] rounded-[clamp(0.7rem,1.6vw,0.875rem)] border border-[var(--settings-panel-border)] bg-[var(--settings-panel-bg)] px-[clamp(0.78rem,1.8vw,1rem)] py-[clamp(0.68rem,1.5vw,0.85rem)] text-[var(--settings-panel-value)] transition-colors hover:border-[var(--settings-panel-border-hover)] hover:bg-[var(--settings-kpi-bg)] has-[:checked]:border-[var(--settings-secondary-border-hover)] has-[:checked]:bg-[var(--settings-secondary-bg)]"
+            >
+              <input
+                type="checkbox"
+                {...register("webdavReadOnly")}
+                className="peer sr-only"
+              />
+              <span
+                aria-hidden="true"
+                className="mt-[clamp(0.1rem,0.25vw,0.15rem)] flex h-[clamp(1.7rem,3.2vw,1.9rem)] w-[clamp(1.7rem,3.2vw,1.9rem)] items-center justify-center rounded-[clamp(0.55rem,1.2vw,0.65rem)] border border-[var(--settings-chip-border)] bg-[var(--settings-form-input-bg)] text-transparent shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-all peer-checked:border-[var(--settings-secondary-border-hover)] peer-checked:bg-[var(--settings-secondary-bg-hover)] peer-checked:text-[var(--settings-secondary-text)] peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--settings-form-input-ring)]"
+              >
+                <Check
+                  className="h-[clamp(0.9rem,1.8vw,1rem)] w-[clamp(0.9rem,1.8vw,1rem)] stroke-[2.6]"
+                  aria-hidden="true"
+                />
+              </span>
+              <span className="min-w-0">
+                <span className="font-brand block text-[length:var(--settings-text-sm)] font-semibold tracking-wide">
+                  WebDAV read-only
+                </span>
+                <span className="font-brand mt-[clamp(0.195rem,0.45vw,0.25rem)] block text-[length:var(--settings-text-xs)] leading-relaxed tracking-wide text-[var(--settings-panel-muted)]">
+                  Limit WebDAV clients to download and browse operations.
+                </span>
+              </span>
+            </label>
+          </div>
+          <div className="lg:col-span-2">
+            <label
+              htmlFor="new-token-webdav-root"
+              className={settingsLabelClass()}
+            >
+              WebDAV root folder ID (optional)
+            </label>
+            <input
+              id="new-token-webdav-root"
+              type="text"
+              {...register("webdavRootFolderId")}
+              placeholder="Leave empty for full account"
+              className={settingsInputClass(Boolean(errors.webdavRootFolderId))}
+            />
+            {errors.webdavRootFolderId && (
+              <p className={settingsErrorClass()}>
+                {errors.webdavRootFolderId.message}
+              </p>
+            )}
+          </div>
+          <div className="flex justify-end border-t border-[var(--settings-panel-border)] pt-[clamp(0.78rem,1.8vw,1rem)] lg:col-span-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className={settingsPrimaryButtonClass("w-full sm:w-auto sm:min-w-[10rem]")}
+              data-oid="qabeet7"
+            >
+              {createTokenMutation.isPending ? "Creating..." : "Create token"}
+            </button>
+          </div>
         </form>
 
         {/* 显示新创建的 Token */}
@@ -400,6 +506,15 @@ const ApiTokenSection = memo(function ApiTokenSection() {
                         ) : (
                           " Never"
                         )}
+                      </p>
+                      <p className="font-brand font-normal tracking-wide">
+                        WebDAV: {token.webdav_enabled ? "Enabled" : "Disabled"}
+                      </p>
+                      <p className="font-brand font-normal tracking-wide">
+                        Mode: {token.webdav_read_only ? "Read-only" : "Read/write"}
+                      </p>
+                      <p className="font-brand sm:col-span-2 font-normal tracking-wide">
+                        Root: {token.webdav_root_folder_id ?? "Full account"}
                       </p>
                     </div>
                   </div>

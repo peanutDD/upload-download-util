@@ -17,6 +17,17 @@ impl FileService {
             .ok_or(AppError::NotFound)
     }
 
+    pub async fn find_file_by_name_and_folder(
+        &self,
+        user_id: Uuid,
+        filename: &str,
+        folder_id: Option<Uuid>,
+    ) -> Result<Option<File>, AppError> {
+        self.files_repo
+            .find_by_name_and_folder(user_id, filename, folder_id)
+            .await
+    }
+
     pub async fn get_file_for_thumbnail(
         &self,
         file_id: Uuid,

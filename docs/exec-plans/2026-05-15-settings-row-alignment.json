@@ -1,0 +1,27 @@
+{
+  "date": "2026-05-15",
+  "task": "settings-row-alignment",
+  "goal": "Align first-row Settings actions and third-row status card bottoms on desktop.",
+  "assumptions": [
+    "The first row means Account and Security.",
+    "The third row means OCR Status and Storage.",
+    "This is a layout-only change; form behavior and API calls stay unchanged."
+  ],
+  "risks": [
+    "Stretching unequal content can introduce extra internal whitespace.",
+    "The extra whitespace is acceptable when it creates cleaner action and card baselines."
+  ],
+  "steps": [
+    "Add Settings regression coverage for first-row action alignment and status row stretching.",
+    "Stretch the Account and Security desktop columns and make their card content fill available height.",
+    "Move the Account and Security action rows to the bottom with mt-auto.",
+    "Stretch the OCR Status and Storage desktop columns so their bottom edges align.",
+    "Verify with focused tests, lint, build, and a desktop screenshot/DOM probe."
+  ],
+  "acceptance": [
+    "Save and Change password align horizontally on desktop.",
+    "OCR Status and Storage have matching top and bottom edges on desktop.",
+    "Focused Settings regression tests pass.",
+    "Lint, build, and visual probe pass."
+  ]
+}

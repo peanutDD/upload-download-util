@@ -135,7 +135,7 @@ const PasswordChangeSection = memo(function PasswordChangeSection() {
       <form
         onSubmit={handleSubmit(onSubmit)}
         noValidate
-        className="space-y-[clamp(0.78rem,1.8vw,1rem)]"
+        className="grid gap-[clamp(0.78rem,1.8vw,1rem)]"
         data-oid="be5kts_"
       >
         <div data-oid="0h03yxf">
@@ -246,14 +246,19 @@ const PasswordChangeSection = memo(function PasswordChangeSection() {
             </p>
           )}
         </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className={settingsPrimaryButtonClass("w-full")}
-          data-oid="-zsxz4-"
+        <div
+          data-testid="settings-security-actions"
+          className="mt-auto flex justify-end border-t border-[var(--settings-panel-border)] pt-[clamp(0.78rem,1.8vw,1rem)]"
         >
-          {loading ? "Changing..." : "Change password"}
-        </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className={settingsPrimaryButtonClass("w-full sm:w-auto sm:min-w-[10rem]")}
+            data-oid="-zsxz4-"
+          >
+            {loading ? "Changing..." : "Change password"}
+          </button>
+        </div>
       </form>
     </SettingsCard>
   );

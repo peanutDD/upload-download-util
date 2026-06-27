@@ -147,7 +147,11 @@ function UploadDialogFooter({
   onAttach: () => void;
 }) {
   return (
-    <div className="uploadDialogCyberFooter flex-shrink-0 p-[clamp(1rem,2.25vw,1.25rem)] pt-[clamp(0.585rem,1.35vw,0.75rem)] sm:p-[clamp(1.25rem,2.7vw,1.5rem)] sm:pt-[clamp(0.78rem,1.8vw,1rem)]" data-oid="9yo:.vp">
+    <div
+      className="uploadDialogCyberFooter flex-shrink-0 p-[clamp(1rem,2.25vw,1.25rem)] pt-[clamp(0.585rem,1.35vw,0.75rem)] sm:p-[clamp(1.25rem,2.7vw,1.5rem)] sm:pt-[clamp(0.78rem,1.8vw,1rem)]"
+      data-ready-to-upload={hasFiles}
+      data-oid="9yo:.vp"
+    >
       <div className="mb-[clamp(0.39rem,0.9vw,0.5rem)] flex items-center gap-[clamp(0.39rem,0.9vw,0.5rem)] text-[clamp(0.68rem,1.6vw,0.75rem)] tracking-widest text-[var(--upload-text-muted)]" data-oid="upload-footer-status">
         {hasFiles ? (
           <CheckCircle2 className="h-[clamp(0.6825rem,1.575vw,0.875rem)] w-[clamp(0.6825rem,1.575vw,0.875rem)] text-[var(--upload-accent)]" aria-hidden="true" />
@@ -161,7 +165,7 @@ function UploadDialogFooter({
           type="button"
           onClick={onCancel}
           disabled={isUploading}
-          className="uploadDialogCyberSecondaryBtn font-brand flex-1 rounded-[clamp(0.4rem,1vw,0.5rem)] bg-[var(--btn-secondary-bg)] px-[clamp(0.78rem,1.8vw,1rem)] py-[clamp(0.39rem,0.9vw,0.5rem)] text-[clamp(0.75rem,1.8vw,0.875rem)] font-normal tracking-widest text-[var(--btn-secondary-text)] transition-colors hover:bg-[var(--btn-secondary-bg-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="uploadDialogCyberSecondaryBtn uploadDialogCancelBtn font-brand flex-1 rounded-[clamp(0.4rem,1vw,0.5rem)] bg-[var(--btn-secondary-bg)] px-[clamp(0.78rem,1.8vw,1rem)] py-[clamp(0.39rem,0.9vw,0.5rem)] text-[clamp(0.75rem,1.8vw,0.875rem)] font-normal tracking-widest text-[var(--btn-secondary-text)] transition-colors hover:bg-[var(--btn-secondary-bg-hover)] disabled:cursor-not-allowed disabled:opacity-50"
           data-oid="tq87jek"
         >
           Cancel
@@ -170,7 +174,7 @@ function UploadDialogFooter({
           type="button"
           onClick={onAttach}
           disabled={!hasFiles || (isUploading && !hasPending)}
-          className="uploadDialogCyberPrimaryBtn font-brand flex-1 rounded-[clamp(0.4rem,1vw,0.5rem)] bg-[var(--btn-primary-bg)] px-[clamp(0.78rem,1.8vw,1rem)] py-[clamp(0.39rem,0.9vw,0.5rem)] text-[clamp(0.75rem,1.8vw,0.875rem)] font-normal tracking-widest text-[var(--btn-primary-text)] transition-colors hover:bg-[var(--btn-primary-bg-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="uploadDialogCyberPrimaryBtn uploadDialogAttachBtn font-brand flex-1 rounded-[clamp(0.4rem,1vw,0.5rem)] bg-[var(--btn-primary-bg)] px-[clamp(0.78rem,1.8vw,1rem)] py-[clamp(0.39rem,0.9vw,0.5rem)] text-[clamp(0.75rem,1.8vw,0.875rem)] font-normal tracking-widest text-[var(--btn-primary-text)] transition-colors hover:bg-[var(--btn-primary-bg-hover)] disabled:cursor-not-allowed disabled:opacity-50"
           data-oid="-49nfvp"
         >
           {hasPending ? "Start Upload" : isUploading ? "Uploading..." : "Attach files"}

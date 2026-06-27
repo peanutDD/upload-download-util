@@ -133,11 +133,15 @@ async fn ensure_test_database(database_url: &str) {
 pub async fn cleanup_test_data(pool: &PgPool) {
     // 按照外键依赖顺序清理
     let _ = sqlx::query("DELETE FROM file_shares").execute(pool).await;
+    let _ = sqlx::query("DELETE FROM background_tasks")
+        .execute(pool)
+        .await;
     let _ = sqlx::query("DELETE FROM files").execute(pool).await;
     let _ = sqlx::query("DELETE FROM folders").execute(pool).await;
     let _ = sqlx::query("DELETE FROM upload_sessions")
         .execute(pool)
         .await;
+    let _ = sqlx::query("DELETE FROM webdav_locks").execute(pool).await;
     let _ = sqlx::query("DELETE FROM api_tokens").execute(pool).await;
     let _ = sqlx::query("DELETE FROM users WHERE email LIKE '%@test.com'")
         .execute(pool)
@@ -174,7 +178,23 @@ pub async fn create_test_user(pool: &PgPool, suffix: &str) -> (uuid::Uuid, Strin
 #[allow(dead_code)]
 pub async fn create_test_file(pool: &PgPool, user_id: uuid::Uuid, filename: &str) -> uuid::Uuid {
     let file_id = uuid::Uuid::new_v4();
-    let file_path = format!("/test/{}/{}", user_id, file_id);
+    let config = file_storage_backend::config::Config::from_env()
+        .unwrap_or_else(|_| file_storage_backend::config::Config::default_for_test());
+    let file_path = std::path::PathBuf::from(config.storage.path)
+        .join("test-fixtures")
+        .join(user_id.to_string())
+        .join(file_id.to_string())
+        .join(filename);
+
+    if let Some(parent) = file_path.parent() {
+        tokio::fs::create_dir_all(parent)
+            .await
+            .expect("Failed to create test file parent directory");
+    }
+    tokio::fs::write(&file_path, vec![b'x'; 1024])
+        .await
+        .expect("Failed to write test file fixture");
+    let file_path = file_path.to_string_lossy().to_string();
 
     sqlx::query(
         "INSERT INTO files (id, user_id, filename, original_filename, file_path, file_size, mime_type, storage_backend) \

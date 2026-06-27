@@ -1,0 +1,30 @@
+{
+  "date": "2026-05-11",
+  "task": "codex-cli-review-text",
+  "goal": "Add a provider-neutral --review-text CLI input while preserving the legacy --gemini-review flag.",
+  "assumptions": [
+    "Existing workflows may still use --gemini-review.",
+    "--review-json remains the preferred structured input path.",
+    "--review-text carries inline Markdown/text content rather than a file path."
+  ],
+  "risks": [
+    "Supplying both text aliases could make the chosen input ambiguous.",
+    "Changing --gemini-review behavior could break the workflow Markdown rollback path.",
+    "Provider-level Gemini naming remains a separate follow-up."
+  ],
+  "steps": [
+    "Add failing e2e tests for --review-text and ambiguous aliases.",
+    "Add --review-text to pr-auto-fix and auto-fix-local.",
+    "Reject ambiguous text input combinations.",
+    "Update docs and permanent constraints.",
+    "Run fmt, tests, clippy, reinstall, and doctor."
+  ],
+  "verification": [
+    "cargo test --manifest-path scripts/codex-cli/Cargo.toml --test e2e_auto_fix review_text",
+    "cargo fmt --manifest-path scripts/codex-cli/Cargo.toml -- --check",
+    "cargo test --manifest-path scripts/codex-cli/Cargo.toml",
+    "cargo clippy --manifest-path scripts/codex-cli/Cargo.toml --all-targets -- -D warnings",
+    "cargo install --path scripts/codex-cli --force",
+    "codex-auto-fix doctor --json"
+  ]
+}

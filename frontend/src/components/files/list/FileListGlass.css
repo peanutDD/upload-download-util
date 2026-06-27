@@ -140,7 +140,6 @@
 .fileListGlassScope .glass-panel.glass-panel-toolbar {
   font-family: var(--font-sans);
   letter-spacing: 0.025em;
-  /* 下拉已改为 portal（挂到 body），无需 overflow: visible / 额外抬高层级 */
   overflow: hidden;
   z-index: auto;
   border-radius: var(--bar-radius);
@@ -153,7 +152,9 @@
 .fileListGlassScope .glass-panel-toolbar.fileListToolbarScale75 {
   display: flex;
   align-items: center;
+  position: relative;
   overflow: visible;
+  z-index: var(--filters-dropdown-toolbar-z);
 }
 .fileListGlassScope .glass-panel-toolbar.fileListToolbarScale75 > * {
   width: 133.333%;
@@ -242,6 +243,29 @@
 
 .fileListGlassScope .trashCardThumb {
   background: var(--file-card-thumb-bg);
+}
+
+.fileListGlassScope .trashCardMeta {
+  min-height: clamp(3.55rem, 6.8vw, 4.8rem);
+}
+
+.fileListGlassScope .trashCardActions {
+  margin-top: auto;
+}
+
+.fileListGlassScope .trashCardActionButton {
+  min-height: clamp(1.05rem, 2.2vw, 1.28rem);
+  border-color: var(--trash-action-border);
+  background: var(--trash-action-bg);
+}
+
+.fileListGlassScope .trashCardActionButton:hover {
+  background: var(--trash-action-bg-hover);
+}
+
+.fileListGlassScope .trashCardActionIcon {
+  width: clamp(0.58rem, 1.45vw, 0.78rem);
+  height: clamp(0.58rem, 1.45vw, 0.78rem);
 }
 
 /* ALL FILES、批量栏：无圆角，容器高度与 padding 统一 */
@@ -562,12 +586,42 @@
 }
 
 /* 卡片勾选框：外圈水晶效果 */
+.fileListGlassScope .selection-checkbox-hover-reveal {
+  visibility: visible;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .fileListGlassScope .group .selection-checkbox-hover-reveal {
+    visibility: hidden;
+  }
+
+  .fileListGlassScope .group:hover .selection-checkbox-hover-reveal {
+    visibility: visible;
+  }
+}
+
 .fileListGlassScope .card-checkbox-outer-crystal {
   border: 0.046875rem solid var(--selection-check-crystal-border);
   box-shadow: none;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
   -webkit-backdrop-filter: blur(clamp(0.25rem, 0.6vw, 0.375rem));
   backdrop-filter: blur(clamp(0.25rem, 0.6vw, 0.375rem));
+}
+
+.fileListGlassScope .card-checkbox-unselected {
+  border: 0.0625rem solid var(--selection-check-unselected-border);
+  box-shadow: var(--selection-check-unselected-shadow);
+  -webkit-backdrop-filter: blur(clamp(0.18rem, 0.45vw, 0.28rem));
+  backdrop-filter: blur(clamp(0.18rem, 0.45vw, 0.28rem));
+}
+
+.fileListGlassScope .card-checkbox-unselected-ring {
+  border-width: 0.125rem;
+}
+
+.fileListGlassScope .group:hover .card-checkbox-unselected {
+  border-color: var(--selection-check-unselected-border-hover);
+  box-shadow: var(--selection-check-unselected-shadow-hover);
 }
 
 .fileListGlassScope .group:hover .card-checkbox-outer-crystal {

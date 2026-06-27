@@ -1,0 +1,28 @@
+{
+  "date": "2026-05-12",
+  "task": "unselected card checkbox contrast",
+  "intent": "Improve the contrast of unselected file/folder card checkboxes so the outer circle and inner ring remain visible against thumbnail backgrounds.",
+  "assumptions": [
+    "The checkbox visibility issue is already fixed by C-071.",
+    "The remaining problem is visual contrast, not DOM presence or click handling.",
+    "SelectionCheckbox is shared by file, folder, and trash cards, so one component-level styling change covers the card surfaces."
+  ],
+  "risks": [
+    "Over-brightening the unselected checkbox could make it compete with selected state.",
+    "Hardcoded colors would bypass theme-specific contrast needs."
+  ],
+  "dependencies": [
+    "frontend/src/components/common/form/SelectionCheckbox.tsx",
+    "frontend/src/components/files/list/FileListGlass.css",
+    "frontend/src/styles/tokens.css",
+    "frontend/src/components/files/grid/FileCardMobileDragMove.test.tsx"
+  ],
+  "steps": [
+    "Add a failing regression test requiring high-contrast unselected checkbox classes.",
+    "Add unselected outer and ring semantic classes in SelectionCheckbox.",
+    "Add theme tokens for unselected surface, border, ring, and shadow.",
+    "Style the unselected classes in FileListGlass.css.",
+    "Add permanent constraint and quality score entry.",
+    "Run focused tests, full frontend tests, lint, token checks, build, visual evidence, and diff whitespace checks."
+  ]
+}

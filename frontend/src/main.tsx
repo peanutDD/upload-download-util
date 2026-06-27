@@ -1,6 +1,7 @@
 import { StrictMode, startTransition } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
+import "./store/themeStore";
 import App from "./App.tsx";
 import { setupGlobalErrorTracking } from "./bootstrap/errorTracking";
 import { setupApiPreconnect } from "./bootstrap/preconnect";

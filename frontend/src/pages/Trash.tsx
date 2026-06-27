@@ -426,41 +426,11 @@ export default function Trash() {
                         />
 
                         <TrashThumbnail file={file} />
-
-                        <div className="absolute bottom-[clamp(0.2rem,0.7vw,0.25rem)] right-[clamp(0.2rem,0.7vw,0.25rem)] z-10 flex items-center gap-[clamp(0.1rem,0.4vw,0.125rem)] opacity-80 transition group-hover:opacity-100">
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              restoreMutation.mutate(file.id);
-                            }}
-                            disabled={restoreMutation.isPending}
-                            data-testid={`trash-card-restore-${file.id}`}
-                            className="glass-btn allFilesBtnHighlight inline-flex size-[clamp(0.6rem,1.75vw,0.86rem)] items-center justify-center p-0 text-[var(--filelist-btn-text)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-                            aria-label={`还原 ${file.original_filename}`}
-                            title="Restore"
-                          >
-                            <ArchiveRestore className="h-[58%] w-[58%]" aria-hidden />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setConfirm({ type: "permanent", file });
-                            }}
-                            disabled={permanentMutation.isPending}
-                            className="glass-btn uploadBtnHighlight inline-flex size-[clamp(0.6rem,1.75vw,0.86rem)] items-center justify-center p-0 text-[var(--filelist-btn-text)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-                            aria-label={`彻底删除 ${file.original_filename}`}
-                            title="Purge"
-                          >
-                            <XCircle className="h-[58%] w-[58%]" aria-hidden />
-                          </button>
-                        </div>
                       </div>
 
                       <div
                         data-testid={`trash-card-meta-${file.id}`}
-                        className="trashCardMeta relative flex w-full flex-col items-center text-center"
+                        className="trashCardMeta relative flex w-full flex-col items-center gap-[clamp(0.18rem,0.55vw,0.32rem)] text-center"
                       >
                         <p
                           data-testid={`trash-card-title-${file.id}`}
@@ -488,6 +458,38 @@ export default function Trash() {
                         >
                           {retention.daysLeft} days left
                         </p>
+                        <div
+                          data-testid={`trash-card-actions-${file.id}`}
+                          className="trashCardActions flex w-full items-center justify-center gap-[clamp(0.18rem,0.55vw,0.28rem)] pt-[clamp(0.15rem,0.45vw,0.25rem)]"
+                        >
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              restoreMutation.mutate(file.id);
+                            }}
+                            disabled={restoreMutation.isPending}
+                            data-testid={`trash-card-restore-${file.id}`}
+                            className="glass-btn trashCardActionButton allFilesBtnHighlight inline-flex min-w-0 flex-1 items-center justify-center p-0 text-[var(--filelist-btn-text)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                            aria-label={`还原 ${file.original_filename}`}
+                            title="Restore"
+                          >
+                            <ArchiveRestore className="trashCardActionIcon" aria-hidden />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setConfirm({ type: "permanent", file });
+                            }}
+                            disabled={permanentMutation.isPending}
+                            className="glass-btn trashCardActionButton uploadBtnHighlight inline-flex min-w-0 flex-1 items-center justify-center p-0 text-[var(--filelist-btn-text)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                            aria-label={`彻底删除 ${file.original_filename}`}
+                            title="Purge"
+                          >
+                            <XCircle className="trashCardActionIcon" aria-hidden />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </article>

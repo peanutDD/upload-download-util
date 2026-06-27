@@ -84,6 +84,27 @@ describe('fileUploadService upload orchestration', () => {
     );
   });
 
+  it('uses the inferred MIME type for normal uploads when the browser reports octet-stream', async () => {
+    const file = makeFile('finder-image.png', 'application/octet-stream', 'png-bytes');
+
+    apiPost.mockResolvedValueOnce({
+      data: {
+        file: {
+          id: 'file-1',
+          filename: 'finder-image.png',
+        },
+      },
+    });
+
+    await fileUploadService.uploadFile(file);
+
+    const formData = apiPost.mock.calls[0][1] as FormData;
+    const uploadedFile = formData.get('file') as File;
+    expect(uploadedFile.type).toBe('image/png');
+    expect(uploadedFile.name).toBe('finder-image.png');
+    expect(uploadedFile.lastModified).toBe(file.lastModified);
+  });
+
   it('aborts the server chunked upload session when a queued upload is cancelled after init', async () => {
     const controller = new AbortController();
     const file = makeFile('movie.mp4', 'video/mp4', 'video');

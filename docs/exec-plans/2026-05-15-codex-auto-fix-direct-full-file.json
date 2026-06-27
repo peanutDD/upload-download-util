@@ -1,0 +1,27 @@
+{
+  "date": "2026-05-15",
+  "task": "codex auto-fix direct full-file repair mode",
+  "goal": "Stop relaxed BatchFix from being blocked by patch context mismatch by writing complete replacement files directly.",
+  "assumptions": [
+    "The requested behavior is for relaxed GitHub auto-fix runs to prioritize applying all review fixes over preserving patch-first diagnostics.",
+    "Protected file checks, allowed fallback prefixes, checkout correctness, and pre-push verification remain hard boundaries.",
+    "Legacy patch and retry behavior remains useful for local or strict mode tests."
+  ],
+  "risks": [
+    "Full-file replacement can touch more text than a minimal SEARCH/REPLACE patch if the model over-edits.",
+    "Model output that is itself a patch must still be rejected before writing as source.",
+    "Relaxed workflow must not hide pre-push validation failures."
+  ],
+  "dependencies": [
+    "scripts/codex-cli/src/skills.rs",
+    ".github/workflows/codex-auto-fix.yml",
+    "scripts/codex-cli/tests/e2e_auto_fix.rs",
+    "scripts/codex-cli/tests/workflow_state.rs"
+  ],
+  "verification": [
+    "cargo fmt --manifest-path scripts/codex-cli/Cargo.toml -- --check",
+    "cargo test --manifest-path scripts/codex-cli/Cargo.toml",
+    "cargo clippy --manifest-path scripts/codex-cli/Cargo.toml --all-targets -- -D warnings",
+    "bash -n .github/scripts/codex-auto-fix-state.sh"
+  ]
+}

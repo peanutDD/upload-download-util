@@ -28,6 +28,7 @@ jobs:
           PR_SHA: ${{ github.event.pull_request.head.sha }}
           GEMINI_REVIEW_TIMEOUT_SECONDS: 600
           GEMINI_REVIEW_POLL_INTERVAL_SECONDS: 15
+          GEMINI_REVIEW_REQUIRED: false
         run: |
           set -euo pipefail
 

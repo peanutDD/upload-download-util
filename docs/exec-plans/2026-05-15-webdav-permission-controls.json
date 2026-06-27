@@ -1,0 +1,26 @@
+{
+  "date": "2026-05-15",
+  "task": "webdav-permission-controls",
+  "goal": "Replace default checkbox visuals for Enable WebDAV and WebDAV read-only with polished permission cards while preserving checkbox behavior.",
+  "assumptions": [
+    "Only the API Tokens WebDAV permission controls change visually.",
+    "react-hook-form registration, checkbox field names, and token creation payloads stay unchanged.",
+    "The controls remain keyboard-focusable and label-clickable through native checkbox semantics."
+  ],
+  "risks": [
+    "Fully replacing checkbox visuals can accidentally break accessibility if the input is removed instead of visually hidden.",
+    "Checked-state styling must be supported by the current Tailwind/Vite build."
+  ],
+  "steps": [
+    "Keep the native checkbox inputs and convert them to sr-only peer controls.",
+    "Redesign each option as a full clickable permission card with a custom rounded check mark, selected-state background, hover state, and helper copy.",
+    "Add regression coverage that the custom cards still submit the expected WebDAV payload.",
+    "Run focused Settings tests, lint, build, and production-preview screenshot verification."
+  ],
+  "acceptance": [
+    "The browser default checkbox square is no longer visible.",
+    "Enable WebDAV defaults checked and WebDAV read-only defaults unchecked.",
+    "Clicking WebDAV read-only still submits webdav_read_only: true.",
+    "Focused test, lint, build, and screenshot verification pass."
+  ]
+}

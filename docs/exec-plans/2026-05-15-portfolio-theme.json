@@ -1,0 +1,36 @@
+{
+  "date": "2026-05-15",
+  "task": "portfolio-theme",
+  "summary": "Add Portfolio as a fifth frontend theme inspired by a neon developer portfolio reference.",
+  "assumptions": [
+    "Portfolio is a new fifth theme and does not replace Terminal or any existing theme.",
+    "The persisted value is portfolio and the display name is Portfolio.",
+    "Portfolio keeps dark-mode base behavior by applying both data-theme=\"portfolio\" and the dark class.",
+    "Motion is CSS-only, lightweight, and guarded by prefers-reduced-motion."
+  ],
+  "risks": [
+    "Toggle cycle could skip portfolio if only the theme picker is updated.",
+    "DOM classes could fail to include portfolio while state persists correctly.",
+    "Theme picker UI could omit the fifth option.",
+    "Token coverage could miss filelist, upload, preview, settings, or trash surfaces."
+  ],
+  "dependencies": [
+    "frontend/src/store/themeStore.ts",
+    "frontend/src/components/common/ThemeToggle.tsx",
+    "frontend/src/components/settings/ThemeSection.tsx",
+    "frontend/src/styles/tokens.css",
+    "Vitest",
+    "ESLint",
+    "token and hardcoding checks",
+    "Vite build",
+    "Chrome visual smoke"
+  ],
+  "verification": [
+    "focused frontend tests",
+    "npm run lint",
+    "npm run check:tokens",
+    "npm run check:hardcoding",
+    "npm run build",
+    "Chrome desktop and mobile screenshots"
+  ]
+}

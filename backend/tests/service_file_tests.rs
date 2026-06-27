@@ -27,6 +27,7 @@ use file_storage_backend::{
     services::file::{FileService, FileServiceError},
     services::storage::{LocalStorage, StorageBackend},
 };
+use serial_test::serial;
 
 // ============================================================================
 // 测试辅助函数：创建测试 FileService
@@ -57,6 +58,7 @@ async fn create_test_service(pool: sqlx::PgPool) -> FileService {
 // ============================================================================
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_rename_happy_path() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -82,6 +84,7 @@ async fn test_file_service_rename_happy_path() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_rename_empty_name() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -107,6 +110,7 @@ async fn test_file_service_rename_empty_name() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_rename_too_long() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -131,6 +135,7 @@ async fn test_file_service_rename_too_long() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_rename_invalid_chars() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -156,6 +161,7 @@ async fn test_file_service_rename_invalid_chars() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_rename_same_name() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -179,6 +185,7 @@ async fn test_file_service_rename_same_name() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_rename_file_not_found() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -202,6 +209,7 @@ async fn test_file_service_rename_file_not_found() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_rename_duplicate_name() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -233,6 +241,7 @@ async fn test_file_service_rename_duplicate_name() {
 // ============================================================================
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_list_basic() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -253,6 +262,7 @@ async fn test_file_service_list_basic() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_list_empty() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -269,6 +279,7 @@ async fn test_file_service_list_empty() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_list_pagination() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -310,6 +321,7 @@ async fn test_file_service_list_pagination() {
 // ============================================================================
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_get_storage_usage() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -329,6 +341,7 @@ async fn test_file_service_get_storage_usage() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_get_storage_usage_empty() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -349,6 +362,7 @@ async fn test_file_service_get_storage_usage_empty() {
 // ============================================================================
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_chunked_upload_happy_path() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -412,6 +426,7 @@ async fn test_file_service_chunked_upload_happy_path() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_chunked_upload_invalid_part_index() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -446,6 +461,7 @@ async fn test_file_service_chunked_upload_invalid_part_index() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_chunked_upload_invalid_chunk_size() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -488,6 +504,7 @@ async fn test_file_service_chunked_upload_invalid_chunk_size() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_chunked_upload_missing_chunks() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -529,6 +546,7 @@ async fn test_file_service_chunked_upload_missing_chunks() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_chunked_upload_abort() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -566,6 +584,7 @@ async fn test_file_service_chunked_upload_abort() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_chunked_upload_duplicate_chunk() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -604,6 +623,7 @@ async fn test_file_service_chunked_upload_duplicate_chunk() {
 // ============================================================================
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_instant_upload_happy_path() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -633,6 +653,7 @@ async fn test_file_service_instant_upload_happy_path() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_instant_upload_invalid_hash() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -654,6 +675,7 @@ async fn test_file_service_instant_upload_invalid_hash() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_instant_upload_empty_hash() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -679,6 +701,7 @@ async fn test_file_service_instant_upload_empty_hash() {
 // ============================================================================
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_quota_exceeded() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -708,6 +731,7 @@ async fn test_file_service_quota_exceeded() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_get_quota() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -740,6 +764,7 @@ async fn test_file_service_get_quota() {
 // ============================================================================
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_delete_file_happy_path() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -762,6 +787,7 @@ async fn test_file_service_delete_file_happy_path() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_delete_file_soft_deletes_into_trash() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -797,6 +823,7 @@ async fn test_file_service_delete_file_soft_deletes_into_trash() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_thumbnail_lookup_allows_deleted_owner_file() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -819,6 +846,7 @@ async fn test_file_service_thumbnail_lookup_allows_deleted_owner_file() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_delete_nonexistent_file() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -837,6 +865,7 @@ async fn test_file_service_delete_nonexistent_file() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_batch_delete() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -863,6 +892,7 @@ async fn test_file_service_batch_delete() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_batch_delete_soft_deletes_files() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -890,6 +920,7 @@ async fn test_file_service_batch_delete_soft_deletes_files() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_restore_deleted_file() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -908,6 +939,7 @@ async fn test_file_service_restore_deleted_file() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_restore_deleted_file_rejects_name_conflict() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -926,6 +958,7 @@ async fn test_file_service_restore_deleted_file_rejects_name_conflict() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_batch_restore_reports_partial_failures() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -952,6 +985,7 @@ async fn test_file_service_batch_restore_reports_partial_failures() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_permanently_delete_file_removes_deleted_record() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -976,6 +1010,7 @@ async fn test_file_service_permanently_delete_file_removes_deleted_record() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_batch_permanently_delete_files_removes_deleted_records() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -1009,6 +1044,7 @@ async fn test_file_service_batch_permanently_delete_files_removes_deleted_record
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_empty_trash_removes_only_deleted_user_files() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -1041,6 +1077,7 @@ async fn test_file_service_empty_trash_removes_only_deleted_user_files() {
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_purge_expired_trash_deletes_only_old_deleted_files() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -1074,6 +1111,7 @@ async fn test_file_service_purge_expired_trash_deletes_only_old_deleted_files() 
 }
 
 #[tokio::test]
+#[serial(file_service_db)]
 async fn test_file_service_purge_expired_trash_keeps_storage_when_active_file_shares_path() {
     init_test_env();
     let pool = create_test_pool().await;

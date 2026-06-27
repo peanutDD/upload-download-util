@@ -46,9 +46,7 @@ export function SelectionCheckbox({
       className={cn(
         positionClassName,
         "z-10 flex cursor-pointer items-center justify-center",
-        // 使用 visibility 替代 opacity，性能更好
-        // visibility: hidden 的元素不参与事件处理，但保留布局
-        shouldHideByDefault && "invisible group-hover:visible",
+        shouldHideByDefault && "selection-checkbox-hover-reveal",
         // will-change 提示浏览器优化
         "[will-change:visibility] [contain:layout_style]",
         isResponsive
@@ -98,7 +96,7 @@ export function SelectionCheckbox({
       ) : (
         <span
           className={cn(
-            "flex items-center justify-center rounded-full bg-[var(--selection-check-surface)] transition-colors duration-150 group-hover:bg-[var(--selection-check-surface-hover)]",
+            "card-checkbox-unselected flex items-center justify-center rounded-full bg-[var(--selection-check-unselected-surface)] transition-colors duration-150 group-hover:bg-[var(--selection-check-unselected-surface-hover)]",
             isResponsive
               ? "h-[clamp(0.72rem,1.1vw,0.95rem)] w-[clamp(0.72rem,1.1vw,0.95rem)]"
               : isSmall
@@ -109,7 +107,7 @@ export function SelectionCheckbox({
         >
           <span
             className={cn(
-              "rounded-full border border-[var(--selection-check-ring)] transition-colors duration-150 group-hover:border-[var(--selection-check-ring-hover)]",
+              "card-checkbox-unselected-ring rounded-full border-[var(--selection-check-unselected-ring)] transition-colors duration-150 group-hover:border-[var(--selection-check-unselected-ring-hover)]",
               isResponsive
                 ? "h-[clamp(0.35rem,0.6vw,0.52rem)] w-[clamp(0.35rem,0.6vw,0.52rem)]"
                 : isSmall

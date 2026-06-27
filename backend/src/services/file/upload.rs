@@ -58,6 +58,61 @@ pub(crate) fn build_storage_filename(
 }
 
 impl FileService {
+    pub(crate) async fn enqueue_fulltext_index_task(
+        &self,
+        file_id: Uuid,
+        user_id: Uuid,
+    ) -> Result<(), AppError> {
+        if !self.config.search.fulltext_search_enabled {
+            return Ok(());
+        }
+        let payload = serde_json::json!({
+            "file_id": file_id,
+            "user_id": user_id,
+        });
+        let queue = crate::services::task_queue::TaskQueue::new(Arc::new(self.pool.clone()));
+        queue
+            .enqueue_task(
+                "search_index_file",
+                payload,
+                Some(&format!("search:{file_id}")),
+            )
+            .await?;
+        Ok(())
+    }
+
+    pub(crate) async fn enqueue_fulltext_remove_task(&self, file_id: Uuid) -> Result<(), AppError> {
+        if !self.config.search.fulltext_search_enabled {
+            return Ok(());
+        }
+        let payload = serde_json::json!({ "file_id": file_id });
+        let queue = crate::services::task_queue::TaskQueue::new(Arc::new(self.pool.clone()));
+        queue
+            .enqueue_task(
+                "search_remove_file",
+                payload,
+                Some(&format!("search:{file_id}")),
+            )
+            .await?;
+        Ok(())
+    }
+
+    pub(crate) async fn enqueue_fulltext_index_task_best_effort(
+        &self,
+        file_id: Uuid,
+        user_id: Uuid,
+    ) {
+        if let Err(error) = self.enqueue_fulltext_index_task(file_id, user_id).await {
+            tracing::warn!(%file_id, %user_id, %error, "failed to enqueue fulltext index task");
+        }
+    }
+
+    pub(crate) async fn enqueue_fulltext_remove_task_best_effort(&self, file_id: Uuid) {
+        if let Err(error) = self.enqueue_fulltext_remove_task(file_id).await {
+            tracing::warn!(%file_id, %error, "failed to enqueue fulltext remove task");
+        }
+    }
+
     // =============================================================================
     // 创建文件（bytes）
     // =============================================================================
@@ -240,6 +295,8 @@ impl FileService {
                 });
             }
 
+            self.enqueue_fulltext_index_task_best_effort(file_response.id, user_id)
+                .await;
             file_response
         } else {
             // 不存在同名文件，创建新文件
@@ -299,6 +356,8 @@ impl FileService {
                 });
             }
 
+            self.enqueue_fulltext_index_task_best_effort(file_response.id, user_id)
+                .await;
             file_response
         };
 

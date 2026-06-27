@@ -16,6 +16,7 @@ import { schedulePreload } from "../../../utils/preloadPreview";
 import { findFolderDropTargetFromPoint } from "../../../utils/dropTargets";
 import { stopDragAutoScroll, updateDragAutoScroll } from "../../../utils/dragAutoScroll";
 import { SelectionCheckbox } from "../../common/form/SelectionCheckbox";
+import { useNativeDragEnabled } from "../../../hooks/useNativeDragEnabled";
 
 interface FileCardProps {
   file: FileMetadata;
@@ -41,10 +42,12 @@ const MOBILE_FILE_DRAG_CANCEL_DISTANCE_PX = 10;
 
 function isInteractivePointerTarget(target: EventTarget | null) {
   if (!(target instanceof Element)) return false;
+  const interactiveTarget = target.closest(
+    'button, input, select, textarea, a, [role="checkbox"], [data-file-menu]',
+  );
   return Boolean(
-    target.closest(
-      'button, input, select, textarea, a, [role="checkbox"], [data-file-menu]',
-    ),
+    interactiveTarget &&
+      !interactiveTarget.closest("[data-file-preview-action]"),
   );
 }
 
@@ -70,6 +73,7 @@ const FileCard = memo(
     onCloseMenu,
     thumbnailPriority,
   }: FileCardProps) {
+    const nativeDragEnabled = useNativeDragEnabled();
     const [isMobileDragging, setIsMobileDragging] = useState(false);
     const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
       null,
@@ -77,6 +81,7 @@ const FileCard = memo(
     const mobileDragActiveRef = useRef(false);
     const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
     const suppressNextPreviewRef = useRef(false);
+    const cleanupGlobalPointerListenersRef = useRef<(() => void) | null>(null);
 
     const clearLongPressTimer = useCallback(() => {
       if (longPressTimerRef.current !== null) {
@@ -85,7 +90,18 @@ const FileCard = memo(
       }
     }, []);
 
-    useEffect(() => clearLongPressTimer, [clearLongPressTimer]);
+    const cleanupGlobalPointerListeners = useCallback(() => {
+      cleanupGlobalPointerListenersRef.current?.();
+      cleanupGlobalPointerListenersRef.current = null;
+    }, []);
+
+    useEffect(
+      () => () => {
+        clearLongPressTimer();
+        cleanupGlobalPointerListeners();
+      },
+      [clearLongPressTimer, cleanupGlobalPointerListeners],
+    );
 
     const handleToggleMenu = (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -103,27 +119,49 @@ const FileCard = memo(
       file.mime_type,
       file.original_filename,
     );
+    const matchSourceLabel =
+      file.match_source === "ocr"
+        ? "OCR"
+        : file.match_source === "filename"
+          ? "Name"
+          : file.match_source === "category"
+            ? "Tag"
+            : "Text";
 
     const handleMouseEnter = () => {
       schedulePreload(file.id);
     };
 
-    const finishMobileFileDrag = useCallback(
-      (e: React.PointerEvent<HTMLElement>) => {
+    const handleContextMenu = useCallback(
+      (e: React.MouseEvent<HTMLElement>) => {
+        if (!nativeDragEnabled && pointerStartRef.current) {
+          e.preventDefault();
+        }
+      },
+      [nativeDragEnabled],
+    );
+
+    const finishMobileFileDragAtPoint = useCallback(
+      (
+        clientX: number,
+        clientY: number,
+        event?: { preventDefault: () => void; stopPropagation: () => void },
+      ) => {
         const wasDragging = mobileDragActiveRef.current;
+        cleanupGlobalPointerListeners();
         clearLongPressTimer();
         pointerStartRef.current = null;
 
         if (!wasDragging) return;
 
-        e.preventDefault();
-        e.stopPropagation();
+        event?.preventDefault();
+        event?.stopPropagation();
         mobileDragActiveRef.current = false;
         suppressNextPreviewRef.current = true;
         setIsMobileDragging(false);
         stopDragAutoScroll();
 
-        const target = findFolderDropTargetFromPoint(e.clientX, e.clientY);
+        const target = findFolderDropTargetFromPoint(clientX, clientY);
         const targetFolderId = target?.dataset.folderId;
         if (targetFolderId !== undefined) {
           onMobileFileDrop?.(targetFolderId, file.id);
@@ -132,9 +170,63 @@ const FileCard = memo(
       },
       [
         clearLongPressTimer,
+        cleanupGlobalPointerListeners,
         file.id,
         onMobileFileDragEnd,
         onMobileFileDrop,
+      ],
+    );
+
+    const finishMobileFileDrag = useCallback(
+      (e: React.PointerEvent<HTMLElement>) => {
+        finishMobileFileDragAtPoint(e.clientX, e.clientY, e);
+      },
+      [finishMobileFileDragAtPoint],
+    );
+
+    const cancelMobileFileDrag = useCallback(() => {
+      cleanupGlobalPointerListeners();
+      clearLongPressTimer();
+      pointerStartRef.current = null;
+      if (mobileDragActiveRef.current) {
+        mobileDragActiveRef.current = false;
+        setIsMobileDragging(false);
+        stopDragAutoScroll();
+        onMobileFileDragEnd?.();
+      }
+    }, [
+      clearLongPressTimer,
+      cleanupGlobalPointerListeners,
+      onMobileFileDragEnd,
+    ]);
+
+    const registerGlobalPointerListeners = useCallback(
+      (pointerId: number) => {
+        cleanupGlobalPointerListeners();
+        const handlePointerUp = (event: PointerEvent) => {
+          if (event.pointerId !== pointerId) return;
+          finishMobileFileDragAtPoint(event.clientX, event.clientY, event);
+        };
+        const handlePointerCancel = (event: PointerEvent) => {
+          if (event.pointerId !== pointerId) return;
+          cancelMobileFileDrag();
+        };
+
+        window.addEventListener("pointerup", handlePointerUp, true);
+        window.addEventListener("pointercancel", handlePointerCancel, true);
+        cleanupGlobalPointerListenersRef.current = () => {
+          window.removeEventListener("pointerup", handlePointerUp, true);
+          window.removeEventListener(
+            "pointercancel",
+            handlePointerCancel,
+            true,
+          );
+        };
+      },
+      [
+        cancelMobileFileDrag,
+        cleanupGlobalPointerListeners,
+        finishMobileFileDragAtPoint,
       ],
     );
 
@@ -144,6 +236,7 @@ const FileCard = memo(
         if (isInteractivePointerTarget(e.target)) return;
 
         suppressNextPreviewRef.current = false;
+        registerGlobalPointerListeners(e.pointerId);
         clearLongPressTimer();
         pointerStartRef.current = { x: e.clientX, y: e.clientY };
         longPressTimerRef.current = setTimeout(() => {
@@ -154,7 +247,12 @@ const FileCard = memo(
 
         e.currentTarget.setPointerCapture?.(e.pointerId);
       },
-      [clearLongPressTimer, file.id, onMobileFileDragStart],
+      [
+        clearLongPressTimer,
+        file.id,
+        onMobileFileDragStart,
+        registerGlobalPointerListeners,
+      ],
     );
 
     const handlePointerMove = useCallback(
@@ -168,8 +266,7 @@ const FileCard = memo(
           !mobileDragActiveRef.current &&
           distance > MOBILE_FILE_DRAG_CANCEL_DISTANCE_PX
         ) {
-          clearLongPressTimer();
-          pointerStartRef.current = null;
+          cancelMobileFileDrag();
           return;
         }
 
@@ -178,19 +275,12 @@ const FileCard = memo(
           updateDragAutoScroll(e.clientY);
         }
       },
-      [clearLongPressTimer],
+      [cancelMobileFileDrag],
     );
 
     const handlePointerCancel = useCallback(() => {
-      clearLongPressTimer();
-      pointerStartRef.current = null;
-      if (mobileDragActiveRef.current) {
-        mobileDragActiveRef.current = false;
-        setIsMobileDragging(false);
-        stopDragAutoScroll();
-        onMobileFileDragEnd?.();
-      }
-    }, [clearLongPressTimer, onMobileFileDragEnd]);
+      cancelMobileFileDrag();
+    }, [cancelMobileFileDrag]);
 
     return (
       <article
@@ -202,8 +292,12 @@ const FileCard = memo(
         )}
         data-file-id={file.id}
         data-mobile-file-dragging={isMobileDragging ? "true" : undefined}
-        draggable
+        draggable={nativeDragEnabled}
         onDragStart={(e) => {
+          if (!nativeDragEnabled) {
+            e.preventDefault();
+            return;
+          }
           e.dataTransfer.setData("application/file-id", file.id);
           e.dataTransfer.effectAllowed = "move";
           onDragStart?.(file.id, e);
@@ -212,6 +306,7 @@ const FileCard = memo(
         onPointerMove={handlePointerMove}
         onPointerUp={finishMobileFileDrag}
         onPointerCancel={handlePointerCancel}
+        onContextMenu={handleContextMenu}
         onMouseEnter={handleMouseEnter}
         data-oid="vkt8wq9"
       >
@@ -249,11 +344,12 @@ const FileCard = memo(
 
             {/* 悬浮预览按钮 */}
             <div
-              className="absolute inset-0 flex items-center justify-center bg-[var(--file-card-preview-overlay-bg)] opacity-0 transition-opacity group-hover:opacity-100"
+              className="pointer-events-none absolute inset-0 flex items-center justify-center bg-[var(--file-card-preview-overlay-bg)] opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
               data-oid="i4m.6k2"
             >
               <button
                 type="button"
+                data-file-preview-action="true"
                 onClick={(e) => {
                   e.stopPropagation();
                   onPreview(file);
@@ -305,6 +401,18 @@ const FileCard = memo(
               >
                 {formattedDate}
               </p>
+              {file.search_snippet && (
+                <p
+                  className="min-w-0 truncate whitespace-nowrap text-[clamp(0.38rem,1.25vw,0.55rem)] text-[var(--file-card-text-muted)]"
+                  title={file.search_snippet}
+                  data-oid="fulltext-snippet"
+                >
+                  <span className="font-medium text-[var(--file-card-text)]">
+                    {matchSourceLabel}
+                  </span>{" "}
+                  {file.search_snippet}
+                </p>
+              )}
             </div>
 
             {/* 设置按钮（与文字平行） */}

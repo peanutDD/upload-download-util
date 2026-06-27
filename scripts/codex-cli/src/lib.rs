@@ -6,6 +6,7 @@
 //! - Skill 实现与 Pipeline 编排
 
 pub mod auto_fix_report;
+pub mod doctor;
 pub mod llm;
 pub mod patch;
 pub mod pipeline;

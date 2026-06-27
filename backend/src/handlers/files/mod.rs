@@ -32,6 +32,7 @@ mod categories;
 mod chunked_upload;
 mod delete;
 mod download;
+mod fulltext_search;
 mod instant_upload;
 mod list;
 mod semantic_search;
@@ -66,6 +67,7 @@ pub use download::{
     download_file_handler, hls_asset_handler, hls_playlist_handler, hls_prepare_handler,
     hls_status_handler, preview_file_handler, thumbnail_file_handler,
 };
+pub use fulltext_search::{fulltext_search_handler, ocr_status_handler};
 pub use instant_upload::instant_upload_handler;
 pub use list::list_files_handler;
 pub use semantic_search::semantic_search_handler;

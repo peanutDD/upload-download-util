@@ -12,7 +12,8 @@ use file_storage_backend::database::pool::create_pool;
 use file_storage_backend::middleware::metrics::init_metrics;
 use file_storage_backend::services::file::create_storage;
 use file_storage_backend::services::task_queue::{
-    run_gif_preview_worker, run_hls_worker, run_trash_cleanup_worker,
+    run_fulltext_index_worker, run_fulltext_remove_worker, run_gif_preview_worker, run_hls_worker,
+    run_trash_cleanup_worker,
 };
 use file_storage_backend::AppState;
 
@@ -134,12 +135,42 @@ async fn main() -> anyhow::Result<()> {
         });
     }
 
+    for _ in 0..concurrency {
+        let state_for_fulltext = state.clone();
+        tokio::spawn(async move {
+            loop {
+                if let Err(e) = run_fulltext_index_worker(&state_for_fulltext).await {
+                    tracing::error!("search_index_file worker iteration failed: {}", e);
+                }
+                tokio::time::sleep(Duration::from_secs(2)).await;
+            }
+        });
+    }
+
+    for _ in 0..concurrency {
+        let state_for_fulltext = state.clone();
+        tokio::spawn(async move {
+            loop {
+                if let Err(e) = run_fulltext_remove_worker(&state_for_fulltext).await {
+                    tracing::error!("search_remove_file worker iteration failed: {}", e);
+                }
+                tokio::time::sleep(Duration::from_secs(2)).await;
+            }
+        });
+    }
+
     // ---------- Maintenance：requeue stuck tasks ----------
     {
         let state_for_maintenance = state.clone();
         tokio::spawn(async move {
             loop {
-                for task_type in ["gif_preview", "hls_preview", "trash_cleanup"] {
+                for task_type in [
+                    "gif_preview",
+                    "hls_preview",
+                    "trash_cleanup",
+                    "search_index_file",
+                    "search_remove_file",
+                ] {
                     if let Ok(n) = state_for_maintenance
                         .task_queue
                         .requeue_stuck_tasks(task_type, 200)
@@ -160,7 +191,13 @@ async fn main() -> anyhow::Result<()> {
         let state_for_metrics = state.clone();
         tokio::spawn(async move {
             loop {
-                for task_type in ["gif_preview", "hls_preview", "trash_cleanup"] {
+                for task_type in [
+                    "gif_preview",
+                    "hls_preview",
+                    "trash_cleanup",
+                    "search_index_file",
+                    "search_remove_file",
+                ] {
                     if let Ok(depth) = state_for_metrics
                         .task_queue
                         .get_queue_depth(task_type)

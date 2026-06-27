@@ -1,0 +1,35 @@
+{
+  "task": "ocr-runtime-pdf-status",
+  "date": "2026-05-14",
+  "goal": "Close remaining OCR gaps: runtime dependencies, scanned PDF page-level OCR, and Settings OCR status management.",
+  "assumptions": [
+    "OCR remains config gated outside Docker Compose.",
+    "Docker Compose may enable OCR because the image installs Tesseract and Poppler.",
+    "PDF OCR v1 uses pdftoppm with a bounded OCR_PDF_MAX_PAGES limit.",
+    "Missing OCR dependencies must be observable and non-fatal."
+  ],
+  "risks": [
+    "OCR dependencies increase container image size.",
+    "OCR on scanned PDFs can be CPU-heavy without a page limit.",
+    "Status UI must not expose secrets or worker internals."
+  ],
+  "dependencies": [
+    "tesseract",
+    "pdftoppm",
+    "backend fulltext worker",
+    "frontend Settings card system"
+  ],
+  "steps": [
+    "Add failing backend tests for Docker packages, PDF conversion, dependency fallback, and OCR status endpoint.",
+    "Add failing frontend test for Settings OCR status readiness.",
+    "Implement OCR PDF config and page-limited Poppler conversion.",
+    "Add OCR status API and Settings status card.",
+    "Update Docker/Compose, constraint docs, quality score, and run verification."
+  ],
+  "acceptance": [
+    "Dockerfile includes Tesseract and Poppler packages.",
+    "PDF OCR renders only configured pages and indexes page text.",
+    "Missing dependencies degrade to skipped/dependency-missing.",
+    "Settings shows OCR enabled state, dependency readiness, and PDF page limit."
+  ]
+}

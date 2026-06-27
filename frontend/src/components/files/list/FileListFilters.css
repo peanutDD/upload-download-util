@@ -247,11 +247,11 @@
   box-shadow: var(--filters-surface-shadow);
   -webkit-backdrop-filter: blur(var(--filters-backdrop-blur-strong)) saturate(150%);
   backdrop-filter: blur(var(--filters-backdrop-blur-strong)) saturate(150%);
-  /* 下拉已改为 portal（挂到 body），无需裁剪高光层 */
-  /* overflow: hidden; */
+  overflow: visible;
   /* 高度压缩：卡片更紧凑 */
   padding: clamp(0.45rem, 0.75vw, 0.6rem);
   position: relative;
+  z-index: 1;
 }
 
 .filtersCard::before {
@@ -265,6 +265,10 @@
     radial-gradient(100% 70% at 15% 0%, rgba(var(--rgb-white), 0.12), transparent 60%);
   opacity: 0.7;
   z-index: 0;
+}
+
+.filtersCardOpen {
+  z-index: calc(var(--filters-dropdown-z) + 1);
 }
 
 .filtersCardHeader,
@@ -403,14 +407,17 @@
   padding: clamp(0.3rem, 0.45vw, 0.41rem);
 }
 
-/* Portal dropdown: compact and aligned with trigger */
-.filtersDropdownPortal {
+/* Dropdown stays inside the trigger card so it scrolls with the toolbar */
+.filtersDropdownPanel {
   font-family: var(--font-brand);
   font-size: var(--filters-dropdown-font-size);
   font-weight: 300;
   letter-spacing: 0.04em;
   line-height: 1.2;
-  position: fixed;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.35rem);
+  width: max(80%, 8rem);
   z-index: var(--filters-dropdown-z);
   max-height: var(--filters-dropdown-max-h);
   overflow-y: auto;
@@ -420,22 +427,22 @@
   border: 1px solid var(--filters-surface-border);
   background:
     radial-gradient(120% 90% at 10% 0%, var(--filters-surface-hi), transparent 60%),
-    linear-gradient(180deg, var(--filters-surface-bg-top), var(--filters-surface-bg-bottom));
+    linear-gradient(180deg, var(--filters-dropdown-surface-bg-top), var(--filters-dropdown-surface-bg-bottom));
   box-shadow: var(--filters-surface-shadow);
   -webkit-backdrop-filter: blur(var(--filters-backdrop-blur-medium)) saturate(150%);
   backdrop-filter: blur(var(--filters-backdrop-blur-medium)) saturate(150%);
   padding: 0.1rem;
 }
 
-.filtersDropdownPortal::-webkit-scrollbar {
+.filtersDropdownPanel::-webkit-scrollbar {
   width: var(--filters-scrollbar-sm);
 }
 
-.filtersDropdownPortal::-webkit-scrollbar-track {
+.filtersDropdownPanel::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.filtersDropdownPortal::-webkit-scrollbar-thumb {
+.filtersDropdownPanel::-webkit-scrollbar-thumb {
   background: var(--filters-dropdown-scrollbar-thumb);
   border-radius: 999px;
   border: 2px solid transparent;

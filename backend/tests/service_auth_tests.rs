@@ -18,6 +18,7 @@ use file_storage_backend::{
     services::auth::{AuthService, AuthServiceError},
     services::cache::CacheService,
 };
+use serial_test::serial;
 use std::sync::Arc;
 
 // ============================================================================
@@ -37,6 +38,7 @@ async fn create_test_auth_service(pool: sqlx::PgPool) -> AuthService {
 // ============================================================================
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_auth_service_register_happy_path() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -59,6 +61,7 @@ async fn test_auth_service_register_happy_path() {
 }
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_auth_service_register_duplicate_email() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -90,6 +93,7 @@ async fn test_auth_service_register_duplicate_email() {
 }
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_auth_service_register_invalid_email() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -113,6 +117,7 @@ async fn test_auth_service_register_invalid_email() {
 }
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_auth_service_register_short_password() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -136,6 +141,7 @@ async fn test_auth_service_register_short_password() {
 }
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_auth_service_register_empty_username() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -163,6 +169,7 @@ async fn test_auth_service_register_empty_username() {
 // ============================================================================
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_auth_service_login_happy_path() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -186,6 +193,7 @@ async fn test_auth_service_login_happy_path() {
 }
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_auth_service_login_invalid_email() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -208,6 +216,7 @@ async fn test_auth_service_login_invalid_email() {
 }
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_auth_service_login_wrong_password() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -237,6 +246,7 @@ async fn test_auth_service_login_wrong_password() {
 // ============================================================================
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_auth_service_generate_and_verify_token() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -255,6 +265,7 @@ async fn test_auth_service_generate_and_verify_token() {
 }
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_auth_service_verify_token_invalid_signature() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -273,6 +284,7 @@ async fn test_auth_service_verify_token_invalid_signature() {
 }
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_auth_service_verify_token_expired() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -293,6 +305,7 @@ async fn test_auth_service_verify_token_expired() {
 }
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_auth_service_verify_token_invalid_format() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -309,6 +322,7 @@ async fn test_auth_service_verify_token_invalid_format() {
 }
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_auth_service_verify_token_empty() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -329,6 +343,7 @@ async fn test_auth_service_verify_token_empty() {
 // ============================================================================
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_auth_service_change_password_happy_path() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -349,6 +364,7 @@ async fn test_auth_service_change_password_happy_path() {
 }
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_auth_service_change_password_wrong_current() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -373,6 +389,7 @@ async fn test_auth_service_change_password_wrong_current() {
 }
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_auth_service_change_password_weak_new() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -402,6 +419,7 @@ async fn test_auth_service_change_password_weak_new() {
 // ============================================================================
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_auth_service_update_profile_username_only() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -429,6 +447,7 @@ async fn test_auth_service_update_profile_username_only() {
 // ============================================================================
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_api_token_create_and_verify() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -443,6 +462,9 @@ async fn test_api_token_create_and_verify() {
     let req = CreateApiTokenRequest {
         name: "test-token".to_string(),
         expires_in_days: None,
+        webdav_enabled: None,
+        webdav_read_only: None,
+        webdav_root_folder_id: None,
     };
     let (token, api_token) = token_service.create_token(user_id, req).await.unwrap();
 
@@ -456,6 +478,7 @@ async fn test_api_token_create_and_verify() {
 }
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_api_token_verify_invalid() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -474,6 +497,7 @@ async fn test_api_token_verify_invalid() {
 }
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_api_token_list() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -488,10 +512,16 @@ async fn test_api_token_list() {
     let req1 = CreateApiTokenRequest {
         name: "token-1".to_string(),
         expires_in_days: None,
+        webdav_enabled: None,
+        webdav_read_only: None,
+        webdav_root_folder_id: None,
     };
     let req2 = CreateApiTokenRequest {
         name: "token-2".to_string(),
         expires_in_days: None,
+        webdav_enabled: None,
+        webdav_read_only: None,
+        webdav_root_folder_id: None,
     };
     token_service.create_token(user_id, req1).await.unwrap();
     token_service.create_token(user_id, req2).await.unwrap();
@@ -502,6 +532,7 @@ async fn test_api_token_list() {
 }
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_api_token_delete() {
     init_test_env();
     let pool = create_test_pool().await;
@@ -516,6 +547,9 @@ async fn test_api_token_delete() {
     let req = CreateApiTokenRequest {
         name: "to-delete".to_string(),
         expires_in_days: None,
+        webdav_enabled: None,
+        webdav_read_only: None,
+        webdav_root_folder_id: None,
     };
     let (_, api_token) = token_service.create_token(user_id, req).await.unwrap();
 
@@ -529,6 +563,7 @@ async fn test_api_token_delete() {
 }
 
 #[tokio::test]
+#[serial(service_auth_db)]
 async fn test_api_token_delete_nonexistent() {
     init_test_env();
     let pool = create_test_pool().await;

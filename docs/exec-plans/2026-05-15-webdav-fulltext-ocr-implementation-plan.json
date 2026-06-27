@@ -1,0 +1,134 @@
+{
+  "date": "2026-05-15",
+  "title": "WebDAV + 全文搜索 + OCR 实现计划",
+  "goal": "按适度优化完成 WebDAV、全文搜索、OCR 业务代码重构与实现收敛，保持外部 API、配置和业务行为兼容。",
+  "scope": [
+    "WebDAV API 模块化拆分和 service 边界收敛",
+    "全文搜索 Tantivy 服务边界、snippet/source 逻辑和索引编排解耦",
+    "OCR facade、图片/PDF/runtime helper 拆分",
+    "文档、约束、质量评分和测试门禁"
+  ],
+  "out_of_scope": [
+    "前端 UI 改造",
+    "数据库迁移",
+    "Tantivy schema 变更",
+    "新的 Rust 运行时依赖",
+    "提交 backend/search-index 运行产物"
+  ],
+  "phases": [
+    {
+      "id": "phase-1",
+      "name": "WebDAV API 模块化拆分",
+      "target_files": [
+        "backend/src/api/webdav/mod.rs",
+        "backend/src/api/webdav/auth.rs",
+        "backend/src/api/webdav/methods.rs",
+        "backend/src/api/webdav/propfind.rs",
+        "backend/src/api/webdav/lock.rs",
+        "backend/src/api/webdav/path.rs",
+        "backend/src/api/webdav/range.rs",
+        "backend/src/api/webdav/lock_headers.rs",
+        "backend/src/api/webdav/xml_fragments.rs"
+      ],
+      "acceptance": [
+        "create_router() 和 handle_root() 保持稳定",
+        "mod.rs 只做入口、dispatch、OPTIONS、错误映射和指标",
+        "路径、Destination、href、Range、Lock header、XML helper 有纯函数回归覆盖"
+      ]
+    },
+    {
+      "id": "phase-2",
+      "name": "WebDAV 业务逻辑下沉到 Service",
+      "target_files": [
+        "backend/src/services/webdav.rs",
+        "backend/src/services/mod.rs",
+        "backend/src/repositories/folders.rs"
+      ],
+      "domain_types": [
+        "WebDavPrincipal",
+        "DavResource",
+        "WebDavError",
+        "WebDavMoveOutcome",
+        "WebDavPutInput",
+        "WebDavReadFile",
+        "WebDavChildren"
+      ],
+      "acceptance": [
+        "API 层不直接做文件/文件夹业务写入",
+        "WebDavError 统一映射到 HTTP status",
+        "cache bump 和 fulltext enqueue side effects 保留"
+      ]
+    },
+    {
+      "id": "phase-3",
+      "name": "全文搜索与 OCR 索引编排解耦",
+      "target_files": [
+        "backend/src/services/fulltext_search.rs",
+        "backend/src/services/fulltext_search/snippet.rs",
+        "backend/src/services/fulltext_indexer.rs",
+        "backend/src/services/task_queue.rs",
+        "backend/src/services/ocr.rs",
+        "backend/src/services/ocr/image.rs",
+        "backend/src/services/ocr/pdf.rs",
+        "backend/src/services/ocr/runtime.rs"
+      ],
+      "acceptance": [
+        "SearchIndexService、SearchDocument、SearchHit 调用兼容",
+        "task_queue.rs 只负责 dequeue/retry/mark 状态",
+        "FulltextIndexer 负责读取文件、文本提取、OCR、指标、SearchDocument 构造和 Tantivy 写入",
+        "OcrExtractor facade 保持兼容，OCR 缺依赖降级而非打断 worker"
+      ]
+    },
+    {
+      "id": "phase-4",
+      "name": "文档、约束和质量收尾",
+      "target_files": [
+        "docs/references/fulltext-ocr-usage.md",
+        "docs/constraints/C-088-webdav-api-service-boundary.md",
+        "docs/constraints/C-089-shared-db-tests-must-be-serial.md",
+        "docs/quality-score.md"
+      ],
+      "acceptance": [
+        "文档说明 WebDAV、全文搜索、OCR 的当前实现边界",
+        "约束防止 WebDAV API 层重新膨胀和共享 DB 测试 flake"
+      ]
+    }
+  ],
+  "public_api_compatibility": {
+    "paths": [
+      "/dav",
+      "/api/files/search/fulltext",
+      "/api/files/search/ocr/status",
+      "/api/v1/..."
+    ],
+    "webdav_methods": [
+      "OPTIONS",
+      "PROPFIND",
+      "MKCOL",
+      "PUT",
+      "GET",
+      "HEAD",
+      "DELETE",
+      "MOVE",
+      "COPY",
+      "LOCK",
+      "UNLOCK"
+    ],
+    "config": [
+      "FULLTEXT_SEARCH_ENABLED",
+      "SEARCH_INDEX_PATH",
+      "OCR_ENABLED",
+      "OCR_TESSERACT_BIN",
+      "OCR_PDFTOPPM_BIN",
+      "OCR_PDF_MAX_PAGES"
+    ]
+  },
+  "test_plan": [
+    "cd backend && RUST_TEST_THREADS=1 cargo test --test handler_webdav_tests",
+    "cd backend && cargo test --test fulltext_search_tests",
+    "cd backend && cargo test --test service_auth_tests",
+    "cd backend && cargo fmt --all -- --check",
+    "cd backend && cargo clippy --all-targets --all-features -- -D warnings",
+    "cd backend && cargo test --all-features"
+  ]
+}

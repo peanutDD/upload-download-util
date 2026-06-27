@@ -274,7 +274,7 @@ impl FilesRepository for SqlxFilesRepo {
         folder_id: Option<Uuid>,
     ) -> Result<Vec<File>, AppError> {
         sqlx::query_as::<_, File>(
-            "SELECT * FROM files WHERE user_id = $1 AND deleted_at IS NULL AND ( (folder_id IS NULL AND $2::uuid IS NULL) OR (folder_id = $2) ) ORDER BY created_at DESC",
+            "SELECT * FROM files WHERE user_id = $1 AND deleted_at IS NULL AND original_filename NOT LIKE '._%' AND ( (folder_id IS NULL AND $2::uuid IS NULL) OR (folder_id = $2) ) ORDER BY created_at DESC",
         )
         .bind(user_id)
         .bind(folder_id)
@@ -781,6 +781,7 @@ impl FilesRepository for SqlxFilesRepo {
         };
         qb.push_bind(user_id); // 首绑：user_id，后续条件用 push + push_bind 避免 SQL 注入
         qb.push(" AND deleted_at IS NULL");
+        qb.push(" AND original_filename NOT LIKE '._%'");
 
         if category_filter_uncategorized {
             qb.push(" AND (category IS NULL OR category = '' OR TRIM(category) = '')");

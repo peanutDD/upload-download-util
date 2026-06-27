@@ -108,6 +108,60 @@
     --upload-tech-border: rgba(134, 239, 172, 0.24);
     --upload-tech-border-strong: rgba(134, 239, 172, 0.44);
     --upload-tech-corner: rgba(34, 211, 238, 0.58);
+    --upload-empty-cancel-bg: linear-gradient(
+        180deg,
+        rgba(var(--rgb-slate-900), 0.66),
+        rgba(var(--rgb-slate-950), 0.54)
+    );
+    --upload-empty-cancel-bg-hover: linear-gradient(
+        180deg,
+        rgba(var(--rgb-slate-800), 0.78),
+        rgba(var(--rgb-slate-900), 0.72)
+    );
+    --upload-empty-cancel-border: rgba(var(--rgb-emerald-300), 0.28);
+    --upload-empty-cancel-border-hover: rgba(var(--rgb-cyan-400), 0.5);
+    --upload-empty-cancel-text: rgba(var(--rgb-slate-300), 0.96);
+    --upload-empty-cancel-shadow:
+        0 clamp(0.45rem, 0.9vw, 0.625rem) clamp(1rem, 1.8vw, 1.25rem)
+            rgba(var(--rgb-black), 0.36),
+        inset 0 1px 0 rgba(var(--rgb-white), 0.12);
+    --upload-empty-attach-bg: linear-gradient(
+        180deg,
+        rgba(var(--rgb-slate-950), 0.46),
+        rgba(var(--rgb-slate-900), 0.28)
+    );
+    --upload-empty-attach-border: rgba(var(--rgb-white), 0.1);
+    --upload-empty-attach-text: rgba(var(--rgb-slate-400), 0.7);
+    --upload-empty-attach-shadow:
+        inset 0 0 0 1px rgba(var(--rgb-white), 0.04),
+        inset 0 1px 1rem rgba(var(--rgb-black), 0.22);
+    --upload-select-files-bg: linear-gradient(
+        135deg,
+        rgba(var(--rgb-emerald-500), 0.96),
+        rgba(var(--rgb-cyan-400), 0.82)
+    );
+    --upload-select-files-bg-hover: linear-gradient(
+        135deg,
+        rgba(var(--rgb-cyan-400), 0.9),
+        rgba(var(--rgb-emerald-500), 0.98)
+    );
+    --upload-select-files-border: rgba(var(--rgb-emerald-300), 0.46);
+    --upload-select-files-text: rgba(var(--rgb-slate-950), 0.98);
+    --upload-select-files-shadow:
+        0 clamp(0.7rem, 1.4vw, 0.875rem) clamp(1.4rem, 2.6vw, 1.75rem)
+            rgba(var(--rgb-emerald-500), 0.3),
+        inset 0 1px 0 rgba(var(--rgb-white), 0.34);
+    --upload-url-upload-bg: rgba(var(--rgb-cyan-400), 0.12);
+    --upload-url-upload-bg-hover: rgba(var(--rgb-cyan-400), 0.2);
+    --upload-url-upload-border: rgba(var(--rgb-cyan-400), 0.34);
+    --upload-url-upload-text: rgba(var(--rgb-cyan-400), 0.92);
+    --upload-url-upload-disabled-bg: rgba(var(--rgb-slate-950), 0.26);
+    --upload-url-upload-disabled-border: rgba(var(--rgb-white), 0.08);
+    --upload-url-upload-disabled-text: rgba(var(--rgb-slate-400), 0.62);
+    --upload-url-upload-shadow:
+        0 clamp(0.45rem, 0.9vw, 0.625rem) clamp(0.9rem, 1.8vw, 1.125rem)
+            rgba(var(--rgb-black), 0.24),
+        inset 0 1px 0 rgba(var(--rgb-white), 0.1);
     --upload-tech-shadow:
         0 clamp(1.375rem, 3vw, 1.875rem) clamp(3.75rem, 7vw, 5rem)
             rgba(0, 0, 0, 0.56),
@@ -139,6 +193,63 @@
     --upload-tech-border: rgba(15, 23, 42, 0.12);
     --upload-tech-border-strong: rgba(46, 220, 133, 0.34);
     --upload-tech-corner: rgba(56, 189, 248, 0.58);
+    --upload-empty-cancel-bg: linear-gradient(
+        180deg,
+        rgba(var(--rgb-white), 0.9),
+        rgba(var(--rgb-white), 0.76)
+    );
+    --upload-empty-cancel-bg-hover: linear-gradient(
+        180deg,
+        rgba(var(--rgb-white), 0.96),
+        rgba(var(--rgb-emerald-300), 0.22)
+    );
+    --upload-empty-cancel-border: rgba(var(--rgb-slate-900), 0.13);
+    --upload-empty-cancel-border-hover: rgba(var(--rgb-cyan-400), 0.34);
+    --upload-empty-cancel-text: rgba(var(--rgb-slate-900), 0.82);
+    --upload-empty-cancel-shadow:
+        0 clamp(0.45rem, 0.9vw, 0.625rem) clamp(1rem, 1.8vw, 1.25rem)
+            rgba(var(--rgb-slate-900), 0.1),
+        inset 0 1px 0 rgba(var(--rgb-white), 0.9);
+    --upload-empty-attach-bg: linear-gradient(
+        180deg,
+        rgba(var(--rgb-white), 0.62),
+        rgba(var(--rgb-white), 0.38)
+    );
+    --upload-empty-attach-border: rgba(var(--rgb-slate-900), 0.08);
+    --upload-empty-attach-text: rgba(var(--rgb-slate-600), 0.66);
+    --upload-empty-attach-shadow:
+        inset 0 0 0 1px rgba(var(--rgb-white), 0.54),
+        inset 0 1px 0 rgba(var(--rgb-white), 0.82);
+    --upload-select-files-bg: linear-gradient(
+        135deg,
+        rgba(var(--rgb-white), 0.94),
+        rgba(var(--rgb-emerald-300), 0.42),
+        rgba(var(--rgb-cyan-400), 0.28)
+    );
+    --upload-select-files-bg-hover: linear-gradient(
+        135deg,
+        rgba(var(--rgb-white), 0.98),
+        rgba(var(--rgb-emerald-300), 0.5),
+        rgba(var(--rgb-cyan-400), 0.36)
+    );
+    --upload-select-files-border: rgba(var(--rgb-cyan-400), 0.42);
+    --upload-select-files-text: rgba(var(--rgb-slate-900), 0.92);
+    --upload-select-files-shadow:
+        0 clamp(0.7rem, 1.4vw, 0.875rem) clamp(1.4rem, 2.6vw, 1.75rem)
+            rgba(var(--rgb-cyan-400), 0.14),
+        0 0 clamp(0.875rem, 1.8vw, 1.25rem) rgba(var(--rgb-emerald-300), 0.16),
+        inset 0 1px 0 rgba(var(--rgb-white), 0.96);
+    --upload-url-upload-bg: rgba(var(--rgb-white), 0.72);
+    --upload-url-upload-bg-hover: rgba(var(--rgb-cyan-400), 0.16);
+    --upload-url-upload-border: rgba(var(--rgb-cyan-400), 0.24);
+    --upload-url-upload-text: rgba(var(--rgb-slate-900), 0.8);
+    --upload-url-upload-disabled-bg: rgba(var(--rgb-white), 0.42);
+    --upload-url-upload-disabled-border: rgba(var(--rgb-slate-900), 0.09);
+    --upload-url-upload-disabled-text: rgba(var(--rgb-slate-500), 0.64);
+    --upload-url-upload-shadow:
+        0 clamp(0.45rem, 0.9vw, 0.625rem) clamp(0.9rem, 1.8vw, 1.125rem)
+            rgba(var(--rgb-slate-900), 0.08),
+        inset 0 1px 0 rgba(var(--rgb-white), 0.78);
     --upload-tech-shadow:
         0 clamp(1.375rem, 3vw, 1.875rem) clamp(3.25rem, 6vw, 4.375rem)
             rgba(15, 23, 42, 0.2),
@@ -157,6 +268,55 @@
     --upload-tech-border: rgba(217, 70, 239, 0.24);
     --upload-tech-border-strong: rgba(34, 211, 238, 0.36);
     --upload-tech-corner: rgba(217, 70, 239, 0.62);
+    --upload-empty-cancel-bg: rgba(var(--rgb-white), 0.02);
+    --upload-empty-cancel-bg-hover: rgba(var(--rgb-white), 0.06);
+    --upload-empty-cancel-border: rgba(var(--rgb-purple-500), 0.38);
+    --upload-empty-cancel-border-hover: rgba(var(--rgb-fuchsia-500), 0.85);
+    --upload-empty-cancel-text: rgba(var(--rgb-white), 0.9);
+    --upload-empty-cancel-shadow:
+        0 clamp(0.45rem, 0.9vw, 0.625rem) clamp(1rem, 1.8vw, 1.25rem)
+            rgba(var(--rgb-purple-950), 0.38),
+        inset 0 1px 0 rgba(var(--rgb-white), 0.12);
+    --upload-empty-attach-bg: linear-gradient(
+        180deg,
+        rgba(var(--rgb-purple-950), 0.5),
+        rgba(var(--rgb-purple-900), 0.18)
+    );
+    --upload-empty-attach-border: rgba(var(--rgb-white), 0.1);
+    --upload-empty-attach-text: rgba(var(--rgb-white), 0.5);
+    --upload-empty-attach-shadow:
+        inset 0 0 0 1px rgba(var(--rgb-white), 0.04),
+        inset 0 1px 1rem rgba(var(--rgb-purple-950), 0.34);
+    --upload-select-files-bg: linear-gradient(
+        135deg,
+        rgba(var(--rgb-fuchsia-500), 0.94),
+        rgba(var(--rgb-purple-500), 0.98),
+        rgba(var(--rgb-purple-400), 0.88)
+    );
+    --upload-select-files-bg-hover: linear-gradient(
+        135deg,
+        rgba(var(--rgb-fuchsia-500), 1),
+        rgba(var(--rgb-purple-500), 0.98),
+        rgba(var(--rgb-cyan-400), 0.72)
+    );
+    --upload-select-files-border: rgba(var(--rgb-fuchsia-500), 0.44);
+    --upload-select-files-text: rgba(var(--rgb-white), 0.98);
+    --upload-select-files-shadow:
+        0 clamp(0.7rem, 1.4vw, 0.875rem) clamp(1.4rem, 2.6vw, 1.75rem)
+            rgba(var(--rgb-purple-500), 0.34),
+        0 0 clamp(0.875rem, 1.8vw, 1.25rem) rgba(var(--rgb-fuchsia-500), 0.18),
+        inset 0 1px 0 rgba(var(--rgb-white), 0.24);
+    --upload-url-upload-bg: rgba(var(--rgb-purple-500), 0.18);
+    --upload-url-upload-bg-hover: rgba(var(--rgb-fuchsia-500), 0.22);
+    --upload-url-upload-border: rgba(var(--rgb-fuchsia-500), 0.34);
+    --upload-url-upload-text: rgba(var(--rgb-white), 0.9);
+    --upload-url-upload-disabled-bg: rgba(var(--rgb-purple-950), 0.28);
+    --upload-url-upload-disabled-border: rgba(var(--rgb-white), 0.08);
+    --upload-url-upload-disabled-text: rgba(var(--rgb-white), 0.48);
+    --upload-url-upload-shadow:
+        0 clamp(0.45rem, 0.9vw, 0.625rem) clamp(0.9rem, 1.8vw, 1.125rem)
+            rgba(var(--rgb-purple-950), 0.3),
+        inset 0 1px 0 rgba(var(--rgb-white), 0.12);
     --upload-tech-shadow:
         0 clamp(1.375rem, 3vw, 1.875rem) clamp(3.75rem, 7vw, 5rem)
             rgba(9, 4, 20, 0.62),
@@ -369,6 +529,90 @@
         0 clamp(0.5rem, 1vw, 0.625rem) clamp(1rem, 2vw, 1.25rem)
             color-mix(in srgb, var(--upload-backdrop) 36%, transparent),
         inset 0 1px 0 color-mix(in srgb, var(--upload-text) 12%, transparent);
+}
+
+.uploadDialogCyberFooter[data-ready-to-upload="false"] .uploadDialogCancelBtn {
+    background: var(--upload-empty-cancel-bg);
+    border-color: var(--upload-empty-cancel-border);
+    color: var(--upload-empty-cancel-text);
+    box-shadow: var(--upload-empty-cancel-shadow);
+}
+
+.uploadDialogCyberFooter[data-ready-to-upload="false"] .uploadDialogCancelBtn:not(:disabled):hover {
+    background: var(--upload-empty-cancel-bg-hover);
+    border-color: var(--upload-empty-cancel-border-hover);
+    color: var(--upload-empty-cancel-text);
+}
+
+.uploadDialogCyberFooter[data-ready-to-upload="false"] .uploadDialogAttachBtn:disabled {
+    background: var(--upload-empty-attach-bg);
+    border-color: var(--upload-empty-attach-border);
+    color: var(--upload-empty-attach-text);
+    box-shadow: var(--upload-empty-attach-shadow);
+    opacity: 1;
+}
+
+.uploadDialogSelectFilesBtn {
+    background: var(--upload-select-files-bg);
+    border-color: var(--upload-select-files-border);
+    color: var(--upload-select-files-text);
+    box-shadow: var(--upload-select-files-shadow);
+}
+
+.uploadDialogSelectFilesBtn:not(:disabled):hover {
+    background: var(--upload-select-files-bg-hover);
+    border-color: var(--upload-select-files-border);
+    color: var(--upload-select-files-text);
+}
+
+.uploadDialogUrlUploadBtn {
+    background: var(--upload-url-upload-bg);
+    border-color: var(--upload-url-upload-border);
+    color: var(--upload-url-upload-text);
+    box-shadow: var(--upload-url-upload-shadow);
+}
+
+.uploadDialogUrlUploadBtn:not(:disabled):hover {
+    background: var(--upload-url-upload-bg-hover);
+    border-color: var(--upload-url-upload-border);
+    color: var(--upload-url-upload-text);
+}
+
+.uploadDialogUrlUploadBtn:disabled {
+    background: var(--upload-url-upload-disabled-bg);
+    border-color: var(--upload-url-upload-disabled-border);
+    color: var(--upload-url-upload-disabled-text);
+    box-shadow: none;
+    opacity: 1;
+}
+
+[data-theme="purple"] .uploadDialogCyberFooter[data-ready-to-upload="true"] .uploadDialogCyberPrimaryBtn:not(:disabled):hover,
+.purple .uploadDialogCyberFooter[data-ready-to-upload="true"] .uploadDialogCyberPrimaryBtn:not(:disabled):hover {
+    background: linear-gradient(
+        135deg,
+        rgba(var(--rgb-fuchsia-500), 0.96) 0%,
+        rgba(var(--rgb-purple-500), 0.98) 52%,
+        rgba(var(--rgb-purple-400), 0.96) 100%
+    );
+    border-color: rgba(var(--rgb-purple-400), 0.34);
+    color: rgba(var(--rgb-white), 0.98);
+    box-shadow:
+        0 clamp(0.7rem, 1.4vw, 0.875rem) clamp(1.5rem, 2.8vw, 1.875rem)
+            rgba(var(--rgb-purple-500), 0.36),
+        0 0 clamp(0.875rem, 1.8vw, 1.25rem) rgba(var(--rgb-fuchsia-500), 0.24),
+        inset 0 1px 0 rgba(var(--rgb-white), 0.26);
+}
+
+[data-theme="purple"] .uploadDialogCyberFooter[data-ready-to-upload="true"] .uploadDialogCyberSecondaryBtn:not(:disabled):hover,
+.purple .uploadDialogCyberFooter[data-ready-to-upload="true"] .uploadDialogCyberSecondaryBtn:not(:disabled):hover {
+    background: rgba(var(--rgb-white), 0.02);
+    border-color: rgba(var(--rgb-fuchsia-500), 0.95);
+    color: rgba(var(--rgb-white), 0.98);
+    box-shadow:
+        0 0 0 1px rgba(var(--rgb-purple-500), 0.54),
+        0 clamp(0.5rem, 1vw, 0.625rem) clamp(1rem, 2vw, 1.25rem)
+            rgba(var(--rgb-purple-950), 0.38),
+        inset 0 1px 0 rgba(var(--rgb-white), 0.16);
 }
 
 .uploadDialogCyberList {

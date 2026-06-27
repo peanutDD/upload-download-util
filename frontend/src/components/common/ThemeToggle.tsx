@@ -2,8 +2,9 @@
 //!
 //! 主题切换按钮组件，支持深色/浅色模式切换。
 
-import { Moon, Sparkles, Sun } from "lucide-react";
+import { Braces, Moon, Sparkles, Sun, Terminal } from "lucide-react";
 import { useThemeStore } from "../../store/themeStore";
+import type { Theme } from "../../store/themeStore";
 import { cn } from "../../utils/cn";
 
 interface ThemeToggleProps {
@@ -21,18 +22,22 @@ export default function ThemeToggle({
   showLabel = false,
 }: ThemeToggleProps) {
   const { effectiveTheme, toggleTheme } = useThemeStore();
-  const nextThemeLabel =
-    effectiveTheme === "dark"
-      ? "Light"
-      : effectiveTheme === "light"
-        ? "Purple"
-        : "Dark";
-  const currentThemeLabel =
-    effectiveTheme === "dark"
-      ? "Dark"
-      : effectiveTheme === "light"
-        ? "Light"
-        : "Purple";
+  const themeLabels: Record<Theme, string> = {
+    dark: "Dark",
+    light: "Light",
+    purple: "Purple",
+    terminal: "Terminal",
+    portfolio: "Portfolio",
+  };
+  const nextThemeByCurrent: Record<Theme, Theme> = {
+    dark: "light",
+    light: "purple",
+    purple: "terminal",
+    terminal: "portfolio",
+    portfolio: "dark",
+  };
+  const currentThemeLabel = themeLabels[effectiveTheme];
+  const nextThemeLabel = themeLabels[nextThemeByCurrent[effectiveTheme]];
 
   return (
     <button
@@ -50,7 +55,19 @@ export default function ThemeToggle({
       title={`Current: ${currentThemeLabel} (Click to switch)`}
       data-oid="6nbyj70"
     >
-      {effectiveTheme === "light" ? (
+      {effectiveTheme === "portfolio" ? (
+        <Braces
+          className="nav-icon shrink-0 text-[var(--nav-btn-icon)]"
+          aria-hidden="true"
+          data-oid="8hvxm0e"
+        />
+      ) : effectiveTheme === "terminal" ? (
+        <Terminal
+          className="nav-icon shrink-0 text-[var(--nav-btn-icon)]"
+          aria-hidden="true"
+          data-oid="9h6tnl2"
+        />
+      ) : effectiveTheme === "light" ? (
         <Sun
           className="nav-icon shrink-0 text-[var(--nav-btn-icon)]"
           aria-hidden="true"

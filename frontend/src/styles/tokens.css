@@ -28,6 +28,11 @@
     --rgb-fuchsia-500: 217, 70, 239;
     --rgb-cyan-400: 34, 211, 238;
     --rgb-sky-400: 56, 189, 248;
+    --rgb-amber-400: 251, 191, 36;
+    --rgb-amber-500: 245, 158, 11;
+    --rgb-amber-600: 217, 119, 6;
+    --rgb-amber-700: 180, 83, 9;
+    --rgb-orange-500: 249, 115, 22;
     --rgb-emerald-300: 159, 226, 191;
     --rgb-emerald-400: 51, 204, 153;
     --rgb-emerald-500: 46, 220, 133;
@@ -210,6 +215,20 @@
     --selection-check-icon-hover: rgba(var(--rgb-white), 1);
     --selection-check-surface: rgba(var(--rgb-white), 0.03);
     --selection-check-surface-hover: rgba(var(--rgb-white), 0.08);
+    --selection-check-unselected-surface: rgba(var(--rgb-slate-950), 0.58);
+    --selection-check-unselected-surface-hover: rgba(var(--rgb-slate-950), 0.72);
+    --selection-check-unselected-border: rgba(var(--rgb-white), 0.74);
+    --selection-check-unselected-border-hover: rgba(var(--rgb-white), 0.95);
+    --selection-check-unselected-ring: rgba(var(--rgb-white), 0.96);
+    --selection-check-unselected-ring-hover: rgba(var(--rgb-white), 1);
+    --selection-check-unselected-shadow:
+        0 0 0 0.03125rem rgba(var(--rgb-black), 0.55),
+        0 0 clamp(0.35rem, 0.9vw, 0.55rem) rgba(var(--rgb-white), 0.24),
+        inset 0 1px 0 rgba(var(--rgb-white), 0.18);
+    --selection-check-unselected-shadow-hover:
+        0 0 0 0.03125rem rgba(var(--rgb-black), 0.65),
+        0 0 clamp(0.45rem, 1vw, 0.7rem) rgba(var(--rgb-white), 0.34),
+        inset 0 1px 0 rgba(var(--rgb-white), 0.24);
     --selection-check-crystal-border: rgba(var(--rgb-white), 0.92);
     --selection-check-crystal-border-hover: rgba(var(--rgb-white), 1);
     --selection-check-crystal-inset-top: rgba(var(--rgb-white), 0.72);
@@ -921,6 +940,8 @@
     --filters-pill-text: rgba(var(--rgb-white), 0.9);
     --filters-value-bg: rgba(var(--rgb-white), 0.11);
     --filters-value-border: rgba(var(--rgb-white), 0.1);
+    --filters-dropdown-surface-bg-top: rgba(var(--rgb-slate-950), 0.92);
+    --filters-dropdown-surface-bg-bottom: rgba(var(--rgb-black), 0.88);
     --filters-dropdown-item-text: rgba(var(--rgb-white), 0.8);
     --filters-dropdown-item-text-hover: rgba(var(--rgb-white), 0.95);
     --filters-dropdown-item-selected-text: rgba(var(--rgb-white), 0.98);
@@ -930,6 +951,7 @@
     --filters-dropdown-check: rgba(var(--rgb-malachite-500), 0.75);
 
     --filters-dropdown-z: 45;
+    --filters-dropdown-toolbar-z: 49;
     --filters-dropdown-max-h: min(50vh, 16rem);
     --filters-dropdown-font-size: var(--font-size-ui-3xs);
 
@@ -1803,6 +1825,9 @@
     --filters-dropdown-item-text-hover-1: var(--filters-dropdown-item-text-hover);
     --filters-dropdown-max-h-1: var(--filters-dropdown-max-h);
     --filters-dropdown-scrollbar-thumb-1: var(--filters-dropdown-scrollbar-thumb);
+    --filters-dropdown-surface-bg-bottom-1: var(--filters-dropdown-surface-bg-bottom);
+    --filters-dropdown-surface-bg-top-1: var(--filters-dropdown-surface-bg-top);
+    --filters-dropdown-toolbar-z-1: var(--filters-dropdown-toolbar-z);
     --filters-dropdown-z-1: var(--filters-dropdown-z);
     --filters-icon-1: var(--filters-icon);
     --filters-pill-text-1: var(--filters-pill-text);
@@ -2684,6 +2709,20 @@
     --selection-check-icon-hover: rgb(187, 220, 229);
     --selection-check-surface: rgb(var(--rgb-white));
     --selection-check-surface-hover: rgb(var(--rgb-white));
+    --selection-check-unselected-surface: rgba(var(--rgb-white), 0.94);
+    --selection-check-unselected-surface-hover: rgba(var(--rgb-white), 1);
+    --selection-check-unselected-border: rgba(var(--rgb-slate-950), 0.42);
+    --selection-check-unselected-border-hover: rgba(var(--rgb-slate-950), 0.62);
+    --selection-check-unselected-ring: rgba(var(--rgb-slate-950), 0.7);
+    --selection-check-unselected-ring-hover: rgba(var(--rgb-slate-950), 0.86);
+    --selection-check-unselected-shadow:
+        0 0 0 0.03125rem rgba(var(--rgb-white), 0.9),
+        0 clamp(0.08rem, 0.22vw, 0.12rem) clamp(0.3rem, 0.8vw, 0.45rem) rgba(var(--rgb-slate-950), 0.22),
+        inset 0 1px 0 rgba(var(--rgb-white), 0.86);
+    --selection-check-unselected-shadow-hover:
+        0 0 0 0.03125rem rgba(var(--rgb-white), 1),
+        0 clamp(0.1rem, 0.26vw, 0.16rem) clamp(0.38rem, 0.9vw, 0.56rem) rgba(var(--rgb-slate-950), 0.3),
+        inset 0 1px 0 rgba(var(--rgb-white), 0.94);
     --selection-check-crystal-border: rgb(187, 220, 229);
     --selection-check-crystal-border-hover: rgb(187, 220, 229);
     --selection-check-crystal-inset-top: rgba(187, 220, 229, 0.56);
@@ -2732,6 +2771,8 @@
     --filters-pill-text: rgba(var(--rgb-slate-950), 0.9);
     --filters-value-bg: rgba(var(--rgb-black), 0.04);
     --filters-value-border: rgba(var(--rgb-black), 0.06);
+    --filters-dropdown-surface-bg-top: rgba(var(--rgb-white), 0.96);
+    --filters-dropdown-surface-bg-bottom: rgba(var(--rgb-white), 0.92);
     --filters-dropdown-item-text: rgba(var(--rgb-slate-950), 0.8);
     --filters-dropdown-item-text-hover: rgba(var(--rgb-slate-950), 0.92);
     --filters-dropdown-item-selected-text: rgba(var(--rgb-slate-950), 0.96);
@@ -3933,6 +3974,728 @@
         0 0 3.125rem rgba(var(--rgb-purple-500), 0.16),
         0 0 6.125rem rgba(var(--rgb-cyan-400), 0.1),
         inset 0 1px 0 rgba(var(--rgb-white), 0.12);
+}
+
+[data-theme="terminal"], .terminal {
+    --color-text-primary: rgba(var(--rgb-white), 0.96);
+    --color-text-secondary: rgba(var(--rgb-cyan-400), 0.86);
+    --color-text-muted: rgba(var(--rgb-slate-300), 0.68);
+    --color-text-disabled: rgba(var(--rgb-slate-500), 0.58);
+
+    --color-border-soft: rgba(var(--rgb-cyan-400), 0.14);
+    --color-border-medium: rgba(var(--rgb-cyan-400), 0.36);
+    --color-border-strong: rgba(var(--rgb-emerald-300), 0.48);
+    --color-focus-ring: rgba(var(--rgb-emerald-300), 0.78);
+
+    --control-input-bg: rgba(var(--rgb-slate-950), 0.82);
+    --control-input-border: rgba(var(--rgb-cyan-400), 0.34);
+    --control-input-text: rgba(var(--rgb-white), 0.95);
+    --control-input-placeholder: rgba(var(--rgb-cyan-400), 0.44);
+    --control-input-ring: rgba(var(--rgb-emerald-300), 0.5);
+    --control-label-text: rgba(var(--rgb-cyan-400), 0.86);
+    --control-hint-text: rgba(var(--rgb-slate-300), 0.64);
+    --control-error-text: rgba(var(--rgb-rose-400), 0.94);
+
+    --terminal-scanline-bg:
+        repeating-linear-gradient(
+            0deg,
+            rgba(var(--rgb-emerald-300), 0.035) 0 1px,
+            transparent 1px 0.55rem
+        );
+    --terminal-grid-bg:
+        linear-gradient(rgba(var(--rgb-cyan-400), 0.075) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(var(--rgb-emerald-300), 0.06) 1px, transparent 1px);
+    --terminal-hover-glow:
+        0 0 0 1px rgba(var(--rgb-cyan-400), 0.3),
+        0 0 1.4rem rgba(var(--rgb-cyan-400), 0.22),
+        0 0 2.6rem rgba(var(--rgb-emerald-300), 0.14);
+
+    --surface-page-gradient:
+        radial-gradient(
+            72rem circle at 10% 0%,
+            rgba(var(--rgb-cyan-400), 0.16),
+            transparent 58%
+        ),
+        radial-gradient(
+            56rem circle at 88% 12%,
+            rgba(var(--rgb-emerald-400), 0.14),
+            transparent 62%
+        ),
+        var(--terminal-grid-bg),
+        var(--terminal-scanline-bg),
+        linear-gradient(
+            155deg,
+            rgb(var(--rgb-slate-950)),
+            rgb(var(--rgb-black)) 45%,
+            rgb(var(--rgb-slate-950))
+        );
+    --surface-page-gradient-dark:
+        radial-gradient(
+            66rem circle at 12% 4%,
+            rgba(var(--rgb-cyan-400), 0.13),
+            transparent 58%
+        ),
+        radial-gradient(
+            48rem circle at 86% 16%,
+            rgba(var(--rgb-emerald-400), 0.12),
+            transparent 62%
+        ),
+        var(--terminal-grid-bg),
+        var(--terminal-scanline-bg),
+        linear-gradient(
+            155deg,
+            rgb(var(--rgb-slate-950)),
+            rgb(var(--rgb-black)) 46%,
+            rgb(var(--rgb-slate-950))
+        );
+    --filelist-page-bg: rgb(var(--rgb-slate-950));
+
+    --glass-bg-strong: rgba(var(--rgb-slate-950), 0.66);
+    --glass-bg-soft: rgba(var(--rgb-slate-950), 0.44);
+    --glass-highlight-strong: rgba(var(--rgb-cyan-400), 0.16);
+    --glass-highlight-soft: rgba(var(--rgb-emerald-300), 0.08);
+    --shadow-glass-card:
+        0 1rem 2.75rem rgba(var(--rgb-black), 0.44),
+        0 0 1.875rem rgba(var(--rgb-cyan-400), 0.14),
+        inset 0 1px 0 rgba(var(--rgb-cyan-400), 0.12);
+    --shadow-neon-cyan-soft: 0 0 clamp(0.75rem, 1.6vw, 1.25rem) rgba(var(--rgb-cyan-400), 0.22);
+    --shadow-neon-purple-soft: 0 0 clamp(0.75rem, 1.6vw, 1.25rem) rgba(var(--rgb-emerald-300), 0.16);
+
+    --nav-surface-bg: rgba(var(--rgb-slate-950), 0.88);
+    --nav-top-glow: linear-gradient(90deg, transparent, rgba(var(--rgb-cyan-400), 0.62), transparent);
+    --nav-bottom-line: rgba(var(--rgb-emerald-300), 0.78);
+    --nav-side-ambience: linear-gradient(
+        90deg,
+        rgba(var(--rgb-cyan-400), 0.12),
+        transparent,
+        rgba(var(--rgb-emerald-300), 0.1)
+    );
+    --nav-btn-text: rgba(var(--rgb-white), 0.94);
+    --nav-btn-bg: rgba(var(--rgb-slate-950), 0.46);
+    --nav-btn-bg-hover: rgba(var(--rgb-cyan-400), 0.12);
+    --nav-btn-border: rgba(var(--rgb-cyan-400), 0.34);
+    --nav-btn-border-hover: rgba(var(--rgb-emerald-300), 0.56);
+    --nav-btn-icon: rgba(var(--rgb-emerald-300), 0.95);
+    --nav-btn-shadow:
+        0 0 0 1px rgba(var(--rgb-cyan-400), 0.1),
+        0 0.7rem 1.75rem rgba(var(--rgb-black), 0.35),
+        0 0 1.5rem rgba(var(--rgb-cyan-400), 0.12);
+    --nav-btn-border-danger-hover: rgba(var(--rgb-rose-400), 0.44);
+    --nav-btn-icon-danger: rgba(var(--rgb-rose-300), 0.96);
+
+    --footer-surface-bg: rgba(var(--rgb-slate-950), 0.82);
+    --footer-grid-bg: var(--terminal-grid-bg);
+    --footer-divider: rgba(var(--rgb-cyan-400), 0.18);
+    --footer-accent-line: rgba(var(--rgb-emerald-300), 0.5);
+
+    --file-card-border: rgba(var(--rgb-cyan-400), 0.28);
+    --file-card-text: rgba(var(--rgb-white), 0.94);
+    --file-card-text-muted: rgba(var(--rgb-cyan-400), 0.66);
+    --file-card-thumb-bg:
+        radial-gradient(
+            100% 85% at 20% 0%,
+            rgba(var(--rgb-cyan-400), 0.1),
+            transparent 55%
+        ),
+        rgba(var(--rgb-black), 0.28);
+    --file-card-preview-overlay-bg: rgba(var(--rgb-slate-950), 0.66);
+    --file-card-preview-btn-bg: rgba(var(--rgb-cyan-400), 0.16);
+    --file-card-preview-btn-bg-hover: rgba(var(--rgb-emerald-300), 0.24);
+    --file-card-preview-btn-text: rgba(var(--rgb-white), 1);
+    --file-card-menu-border: rgba(var(--rgb-cyan-400), 0.36);
+    --file-card-menu-bg: rgba(var(--rgb-slate-950), 0.98);
+    --file-card-menu-item-hover-bg: rgba(var(--rgb-cyan-400), 0.16);
+    --file-card-menu-text: rgba(var(--rgb-white), 0.95);
+    --file-card-menu-trigger-hover-bg: rgba(var(--rgb-cyan-400), 0.14);
+    --file-card-menu-divider: rgba(var(--rgb-cyan-400), 0.22);
+    --filelist-menu-trigger-hover-bg: rgba(var(--rgb-cyan-400), 0.14);
+    --filelist-menu-bg: rgba(var(--rgb-slate-950), 0.98);
+    --filelist-menu-border: rgba(var(--rgb-cyan-400), 0.36);
+    --filelist-menu-text: rgba(var(--rgb-white), 0.95);
+    --filelist-menu-icon: rgba(var(--rgb-emerald-300), 0.88);
+    --filelist-menu-item-hover-bg: rgba(var(--rgb-cyan-400), 0.16);
+    --filelist-menu-divider: rgba(var(--rgb-cyan-400), 0.22);
+    --filelist-tech-grid: var(--terminal-grid-bg);
+    --filelist-tech-scanline: var(--terminal-scanline-bg);
+    --filelist-btn-text: rgba(var(--rgb-white), 0.96);
+
+    --upload-accent: rgba(var(--rgb-cyan-400), 0.98);
+    --upload-backdrop:
+        radial-gradient(
+            52rem circle at 16% 0%,
+            rgba(var(--rgb-cyan-400), 0.18),
+            transparent 58%
+        ),
+        rgba(var(--rgb-slate-950), 0.86);
+    --upload-surface-bg:
+        var(--terminal-scanline-bg),
+        linear-gradient(
+            145deg,
+            rgba(var(--rgb-slate-950), 0.92),
+            rgba(var(--rgb-black), 0.76)
+        );
+    --upload-drop-border: rgba(var(--rgb-cyan-400), 0.38);
+    --upload-drop-bg: rgba(var(--rgb-slate-950), 0.46);
+    --upload-drop-border-hover: rgba(var(--rgb-emerald-300), 0.66);
+    --upload-control-hover: rgba(var(--rgb-cyan-400), 0.12);
+    --upload-progress-bar-bg: linear-gradient(
+        90deg,
+        rgba(var(--rgb-cyan-400), 0.94),
+        rgba(var(--rgb-emerald-300), 0.92)
+    );
+    --upload-progress-bar-shadow: 0 0 1rem rgba(var(--rgb-cyan-400), 0.32);
+    --upload-progress-scanline: rgba(var(--rgb-emerald-300), 0.2);
+
+    --preview-purple-rgb: var(--rgb-cyan-400);
+    --preview-floating-bg: rgba(var(--rgb-slate-950), 0.72);
+    --preview-floating-border: rgba(var(--rgb-cyan-400), 0.3);
+    --preview-floating-shadow:
+        0 clamp(0.35rem, 1vw, 0.75rem) clamp(0.8rem, 2vw, 1.5rem) rgba(var(--rgb-black), 0.56),
+        0 0 1.5rem rgba(var(--rgb-cyan-400), 0.14);
+    --preview-pdf-toolbar-bg: rgba(var(--rgb-slate-950), 0.86);
+    --preview-pdf-toolbar-border: rgba(var(--rgb-cyan-400), 0.24);
+
+    --settings-surface-bg:
+        var(--terminal-scanline-bg),
+        linear-gradient(
+            145deg,
+            rgba(var(--rgb-slate-950), 0.74),
+            rgba(var(--rgb-black), 0.58)
+        );
+    --settings-surface-border: rgba(var(--rgb-cyan-400), 0.26);
+    --settings-surface-shadow:
+        0 1rem 3rem rgba(var(--rgb-black), 0.42),
+        0 0 2rem rgba(var(--rgb-cyan-400), 0.12),
+        inset 0 1px 0 rgba(var(--rgb-cyan-400), 0.1);
+    --settings-surface-glow: linear-gradient(
+        to right,
+        rgba(var(--rgb-cyan-400), 0.1),
+        transparent,
+        rgba(var(--rgb-emerald-300), 0.1)
+    );
+    --settings-surface-hairline: rgba(var(--rgb-emerald-300), 0.48);
+    --settings-title: rgba(var(--rgb-white), 0.96);
+    --settings-subtitle: rgba(var(--rgb-cyan-400), 0.66);
+    --settings-panel-bg: rgba(var(--rgb-slate-950), 0.5);
+    --settings-panel-border: rgba(var(--rgb-cyan-400), 0.2);
+    --settings-panel-border-hover: rgba(var(--rgb-emerald-300), 0.38);
+    --settings-panel-label: rgba(var(--rgb-cyan-400), 0.66);
+    --settings-panel-value: rgba(var(--rgb-white), 0.96);
+    --settings-chip-bg: rgba(var(--rgb-cyan-400), 0.1);
+    --settings-chip-bg-hover: rgba(var(--rgb-emerald-300), 0.14);
+    --settings-chip-border: rgba(var(--rgb-cyan-400), 0.24);
+    --settings-chip-border-hover: rgba(var(--rgb-emerald-300), 0.44);
+    --settings-chip-icon: rgba(var(--rgb-emerald-300), 0.96);
+    --settings-action-bg: linear-gradient(
+        90deg,
+        rgba(var(--rgb-cyan-400), 0.92),
+        rgba(var(--rgb-emerald-300), 0.86)
+    );
+    --settings-action-bg-hover: linear-gradient(
+        90deg,
+        rgba(var(--rgb-cyan-400), 1),
+        rgba(var(--rgb-emerald-300), 0.96)
+    );
+    --settings-action-text: rgba(var(--rgb-slate-950), 1);
+    --settings-action-border: rgba(var(--rgb-emerald-300), 0.6);
+    --settings-action-shadow: 0 0 1.5rem rgba(var(--rgb-cyan-400), 0.24);
+
+    --trash-page-bg:
+        radial-gradient(
+            60rem circle at 12% 0%,
+            rgba(var(--rgb-cyan-400), 0.18),
+            transparent 58%
+        ),
+        radial-gradient(
+            50rem circle at 88% 16%,
+            rgba(var(--rgb-emerald-400), 0.16),
+            transparent 62%
+        ),
+        var(--terminal-grid-bg),
+        linear-gradient(
+            180deg,
+            rgb(var(--rgb-slate-950)),
+            rgb(var(--rgb-black)) 52%,
+            rgb(var(--rgb-slate-950))
+        );
+    --trash-panel-bg:
+        var(--terminal-scanline-bg),
+        linear-gradient(
+            135deg,
+            rgba(var(--rgb-slate-950), 0.78),
+            rgba(var(--rgb-black), 0.62),
+            rgba(var(--rgb-cyan-400), 0.08)
+        );
+    --trash-panel-border: rgba(var(--rgb-cyan-400), 0.28);
+    --trash-panel-shadow:
+        0 0.9rem 2.5rem rgba(var(--rgb-black), 0.36),
+        0 0 1.75rem rgba(var(--rgb-cyan-400), 0.16),
+        inset 0 1px 0 rgba(var(--rgb-cyan-400), 0.1);
+    --trash-tech-grid: var(--terminal-grid-bg);
+    --trash-tech-beam:
+        linear-gradient(
+            120deg,
+            transparent 0 24%,
+            rgba(var(--rgb-cyan-400), 0.3) 24.2%,
+            transparent 25% 66%,
+            rgba(var(--rgb-emerald-300), 0.24) 66.2%,
+            transparent 67%
+        );
+    --trash-tech-scanline:
+        repeating-linear-gradient(
+            0deg,
+            transparent 0 0.62rem,
+            rgba(var(--rgb-emerald-300), 0.08) 0.68rem,
+            transparent 0.78rem
+        );
+    --trash-tech-panel: rgba(var(--rgb-slate-950), 0.68);
+    --trash-tech-panel-strong: rgba(var(--rgb-slate-950), 0.84);
+    --trash-tech-border: rgba(var(--rgb-cyan-400), 0.28);
+    --trash-tech-border-strong: rgba(var(--rgb-emerald-300), 0.44);
+    --trash-tech-corner:
+        linear-gradient(90deg, rgba(var(--rgb-cyan-400), 0.66), transparent 22%, transparent 78%, rgba(var(--rgb-emerald-300), 0.58)),
+        linear-gradient(0deg, rgba(var(--rgb-emerald-300), 0.38), transparent 18%, transparent 82%, rgba(var(--rgb-cyan-400), 0.36));
+    --trash-tech-shadow:
+        0 0.9rem 2.5rem rgba(var(--rgb-black), 0.36),
+        0 0 0 1px rgba(var(--rgb-cyan-400), 0.18),
+        0 0 1.75rem rgba(var(--rgb-emerald-300), 0.12);
+    --trash-accent: rgba(var(--rgb-emerald-300), 0.98);
+    --trash-action-bg: rgba(var(--rgb-slate-950), 0.5);
+    --trash-action-bg-hover: rgba(var(--rgb-cyan-400), 0.14);
+    --trash-action-border: rgba(var(--rgb-cyan-400), 0.28);
+    --trash-action-text: rgba(var(--rgb-white), 0.92);
+    --trash-countdown-text: rgba(var(--rgb-emerald-300), 0.98);
+    --trash-countdown-danger: rgba(var(--rgb-rose-400), 0.98);
+    --trash-thumb-bg:
+        radial-gradient(
+            120% 90% at 20% 0%,
+            rgba(var(--rgb-cyan-400), 0.16),
+            transparent 55%
+        ),
+        rgba(var(--rgb-slate-950), 0.92);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    [data-theme="terminal"] .nav-btn,
+    .terminal .nav-btn,
+    [data-theme="terminal"] .toolbarActionBtn,
+    .terminal .toolbarActionBtn {
+        animation: terminal-glow-pulse 7.5s ease-in-out infinite;
+    }
+
+    [data-theme="terminal"] .uploadDialogCyberSurface::before,
+    .terminal .uploadDialogCyberSurface::before {
+        animation: terminal-scanline-shimmer 14s linear infinite;
+    }
+}
+
+[data-theme="terminal"] .nav-btn:hover,
+.terminal .nav-btn:hover,
+[data-theme="terminal"] .toolbarActionBtn:hover,
+.terminal .toolbarActionBtn:hover {
+    box-shadow: var(--terminal-hover-glow);
+}
+
+@keyframes terminal-glow-pulse {
+    0%,
+    100% {
+        filter: drop-shadow(0 0 0 rgba(var(--rgb-cyan-400), 0));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 0.75rem rgba(var(--rgb-cyan-400), 0.2));
+    }
+}
+
+@keyframes terminal-scanline-shimmer {
+    from {
+        background-position: 0 0;
+    }
+
+    to {
+        background-position: 0 3rem;
+    }
+}
+
+[data-theme="portfolio"], .portfolio {
+    --color-text-primary: rgba(var(--rgb-white), 0.96);
+    --color-text-secondary: rgba(var(--rgb-cyan-400), 0.86);
+    --color-text-muted: rgba(var(--rgb-slate-300), 0.7);
+    --color-text-disabled: rgba(var(--rgb-slate-500), 0.58);
+
+    --color-border-soft: rgba(var(--rgb-purple-500), 0.16);
+    --color-border-medium: rgba(var(--rgb-cyan-400), 0.34);
+    --color-border-strong: rgba(var(--rgb-amber-400), 0.44);
+    --color-focus-ring: rgba(var(--rgb-amber-400), 0.74);
+
+    --control-input-bg: rgba(var(--rgb-slate-950), 0.78);
+    --control-input-border: rgba(var(--rgb-cyan-400), 0.3);
+    --control-input-text: rgba(var(--rgb-white), 0.95);
+    --control-input-placeholder: rgba(var(--rgb-cyan-400), 0.42);
+    --control-input-ring: rgba(var(--rgb-amber-400), 0.42);
+    --control-label-text: rgba(var(--rgb-cyan-400), 0.86);
+    --control-hint-text: rgba(var(--rgb-slate-300), 0.66);
+    --control-error-text: rgba(var(--rgb-rose-400), 0.94);
+
+    --portfolio-grid-bg:
+        linear-gradient(rgba(var(--rgb-cyan-400), 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(var(--rgb-purple-500), 0.08) 1px, transparent 1px);
+    --portfolio-code-sheen:
+        repeating-linear-gradient(
+            90deg,
+            transparent 0 1.8rem,
+            rgba(var(--rgb-amber-400), 0.035) 1.85rem,
+            transparent 1.95rem
+        );
+    --portfolio-hover-glow:
+        0 0 0 1px rgba(var(--rgb-cyan-400), 0.24),
+        0 0 1.5rem rgba(var(--rgb-purple-500), 0.28),
+        0 0 2.6rem rgba(var(--rgb-cyan-400), 0.16);
+
+    --surface-page-gradient:
+        radial-gradient(
+            68rem circle at 12% 4%,
+            rgba(var(--rgb-purple-500), 0.22),
+            transparent 58%
+        ),
+        radial-gradient(
+            58rem circle at 84% 10%,
+            rgba(var(--rgb-cyan-400), 0.18),
+            transparent 62%
+        ),
+        radial-gradient(
+            34rem circle at 78% 78%,
+            rgba(var(--rgb-amber-400), 0.1),
+            transparent 64%
+        ),
+        var(--portfolio-grid-bg),
+        var(--portfolio-code-sheen),
+        linear-gradient(
+            145deg,
+            rgb(var(--rgb-slate-950)),
+            rgb(var(--rgb-slate-900)) 45%,
+            rgb(var(--rgb-black))
+        );
+    --surface-page-gradient-dark:
+        radial-gradient(
+            62rem circle at 12% 4%,
+            rgba(var(--rgb-purple-500), 0.18),
+            transparent 58%
+        ),
+        radial-gradient(
+            52rem circle at 84% 10%,
+            rgba(var(--rgb-cyan-400), 0.15),
+            transparent 62%
+        ),
+        radial-gradient(
+            32rem circle at 78% 78%,
+            rgba(var(--rgb-amber-400), 0.08),
+            transparent 64%
+        ),
+        var(--portfolio-grid-bg),
+        var(--portfolio-code-sheen),
+        linear-gradient(
+            145deg,
+            rgb(var(--rgb-slate-950)),
+            rgb(var(--rgb-slate-900)) 44%,
+            rgb(var(--rgb-black))
+        );
+    --filelist-page-bg: rgb(var(--rgb-slate-950));
+
+    --glass-bg-strong: rgba(var(--rgb-slate-950), 0.62);
+    --glass-bg-soft: rgba(var(--rgb-slate-950), 0.42);
+    --glass-highlight-strong: rgba(var(--rgb-cyan-400), 0.16);
+    --glass-highlight-soft: rgba(var(--rgb-purple-500), 0.1);
+    --shadow-glass-card:
+        0 1.1rem 3rem rgba(var(--rgb-black), 0.42),
+        0 0 2rem rgba(var(--rgb-purple-500), 0.16),
+        0 0 1.5rem rgba(var(--rgb-cyan-400), 0.1),
+        inset 0 1px 0 rgba(var(--rgb-white), 0.11);
+    --shadow-neon-purple-soft: 0 0 clamp(0.75rem, 1.6vw, 1.25rem) rgba(var(--rgb-purple-500), 0.24);
+    --shadow-neon-cyan-soft: 0 0 clamp(0.75rem, 1.6vw, 1.25rem) rgba(var(--rgb-cyan-400), 0.2);
+
+    --nav-surface-bg: rgba(var(--rgb-slate-950), 0.84);
+    --nav-top-glow: linear-gradient(90deg, transparent, rgba(var(--rgb-purple-500), 0.58), rgba(var(--rgb-cyan-400), 0.62), transparent);
+    --nav-bottom-line: rgba(var(--rgb-amber-400), 0.72);
+    --nav-side-ambience: linear-gradient(
+        90deg,
+        rgba(var(--rgb-purple-500), 0.12),
+        transparent,
+        rgba(var(--rgb-cyan-400), 0.12)
+    );
+    --nav-btn-text: rgba(var(--rgb-white), 0.94);
+    --nav-btn-bg: rgba(var(--rgb-slate-950), 0.46);
+    --nav-btn-bg-hover: rgba(var(--rgb-purple-500), 0.16);
+    --nav-btn-border: rgba(var(--rgb-cyan-400), 0.34);
+    --nav-btn-border-hover: rgba(var(--rgb-amber-400), 0.54);
+    --nav-btn-icon: rgba(var(--rgb-amber-400), 0.94);
+    --nav-btn-shadow:
+        0 0 0 1px rgba(var(--rgb-purple-500), 0.12),
+        0 0.75rem 1.75rem rgba(var(--rgb-black), 0.34),
+        0 0 1.4rem rgba(var(--rgb-cyan-400), 0.12);
+    --nav-btn-border-danger-hover: rgba(var(--rgb-rose-400), 0.44);
+    --nav-btn-icon-danger: rgba(var(--rgb-rose-300), 0.96);
+
+    --footer-surface-bg: rgba(var(--rgb-slate-950), 0.82);
+    --footer-grid-bg: var(--portfolio-grid-bg);
+    --footer-grid-bg-image: var(--portfolio-grid-bg);
+    --footer-divider: rgba(var(--rgb-purple-500), 0.22);
+    --footer-accent-line: rgba(var(--rgb-amber-400), 0.56);
+
+    --file-card-border: rgba(var(--rgb-purple-500), 0.3);
+    --file-card-text: rgba(var(--rgb-white), 0.94);
+    --file-card-text-muted: rgba(var(--rgb-cyan-400), 0.68);
+    --file-card-thumb-bg:
+        radial-gradient(
+            100% 85% at 20% 0%,
+            rgba(var(--rgb-purple-500), 0.14),
+            transparent 55%
+        ),
+        radial-gradient(
+            90% 90% at 100% 100%,
+            rgba(var(--rgb-cyan-400), 0.1),
+            transparent 62%
+        ),
+        rgba(var(--rgb-black), 0.28);
+    --file-card-preview-overlay-bg: rgba(var(--rgb-slate-950), 0.64);
+    --file-card-preview-btn-bg: rgba(var(--rgb-purple-500), 0.18);
+    --file-card-preview-btn-bg-hover: rgba(var(--rgb-cyan-400), 0.22);
+    --file-card-preview-btn-text: rgba(var(--rgb-white), 1);
+    --file-card-menu-border: rgba(var(--rgb-purple-500), 0.36);
+    --file-card-menu-bg: rgba(var(--rgb-slate-950), 0.98);
+    --file-card-menu-item-hover-bg: rgba(var(--rgb-purple-500), 0.18);
+    --file-card-menu-text: rgba(var(--rgb-white), 0.95);
+    --file-card-menu-trigger-hover-bg: rgba(var(--rgb-purple-500), 0.16);
+    --file-card-menu-divider: rgba(var(--rgb-cyan-400), 0.2);
+    --filelist-menu-trigger-hover-bg: rgba(var(--rgb-purple-500), 0.16);
+    --filelist-menu-bg: rgba(var(--rgb-slate-950), 0.98);
+    --filelist-menu-border: rgba(var(--rgb-purple-500), 0.36);
+    --filelist-menu-text: rgba(var(--rgb-white), 0.95);
+    --filelist-menu-icon: rgba(var(--rgb-amber-400), 0.9);
+    --filelist-menu-item-hover-bg: rgba(var(--rgb-cyan-400), 0.14);
+    --filelist-menu-divider: rgba(var(--rgb-purple-500), 0.22);
+    --filelist-tech-grid: var(--portfolio-grid-bg);
+    --filelist-tech-scanline: var(--portfolio-code-sheen);
+    --filelist-btn-text: rgba(var(--rgb-white), 0.96);
+    --filelist-folder-icon: rgba(var(--rgb-amber-400), 0.98);
+
+    --upload-accent: rgba(var(--rgb-amber-400), 0.96);
+    --upload-backdrop:
+        radial-gradient(
+            54rem circle at 14% 0%,
+            rgba(var(--rgb-purple-500), 0.2),
+            transparent 58%
+        ),
+        radial-gradient(
+            42rem circle at 88% 18%,
+            rgba(var(--rgb-cyan-400), 0.16),
+            transparent 62%
+        ),
+        rgba(var(--rgb-slate-950), 0.84);
+    --upload-surface-bg:
+        var(--portfolio-grid-bg),
+        linear-gradient(
+            145deg,
+            rgba(var(--rgb-slate-950), 0.9),
+            rgba(var(--rgb-black), 0.72)
+        );
+    --upload-drop-border: rgba(var(--rgb-purple-500), 0.38);
+    --upload-drop-bg: rgba(var(--rgb-slate-950), 0.44);
+    --upload-drop-border-hover: rgba(var(--rgb-amber-400), 0.6);
+    --upload-control-hover: rgba(var(--rgb-purple-500), 0.14);
+    --upload-progress-bar-bg: linear-gradient(
+        90deg,
+        rgba(var(--rgb-purple-500), 0.92),
+        rgba(var(--rgb-cyan-400), 0.94),
+        rgba(var(--rgb-amber-400), 0.9)
+    );
+    --upload-progress-bar-shadow: 0 0 1rem rgba(var(--rgb-cyan-400), 0.3);
+    --upload-progress-scanline: rgba(var(--rgb-amber-400), 0.2);
+
+    --preview-purple-rgb: var(--rgb-purple-500);
+    --preview-floating-bg: rgba(var(--rgb-slate-950), 0.72);
+    --preview-floating-border: rgba(var(--rgb-purple-500), 0.32);
+    --preview-floating-shadow:
+        0 clamp(0.35rem, 1vw, 0.75rem) clamp(0.8rem, 2vw, 1.5rem) rgba(var(--rgb-black), 0.56),
+        0 0 1.5rem rgba(var(--rgb-cyan-400), 0.14),
+        0 0 1.25rem rgba(var(--rgb-purple-500), 0.12);
+    --preview-pdf-toolbar-bg: rgba(var(--rgb-slate-950), 0.86);
+    --preview-pdf-toolbar-border: rgba(var(--rgb-purple-500), 0.26);
+
+    --settings-surface-bg:
+        var(--portfolio-grid-bg),
+        linear-gradient(
+            145deg,
+            rgba(var(--rgb-slate-950), 0.72),
+            rgba(var(--rgb-black), 0.56)
+        );
+    --settings-surface-border: rgba(var(--rgb-purple-500), 0.26);
+    --settings-surface-shadow:
+        0 1rem 3rem rgba(var(--rgb-black), 0.42),
+        0 0 2rem rgba(var(--rgb-purple-500), 0.13),
+        0 0 1.4rem rgba(var(--rgb-cyan-400), 0.09),
+        inset 0 1px 0 rgba(var(--rgb-white), 0.1);
+    --settings-surface-glow: linear-gradient(
+        to right,
+        rgba(var(--rgb-purple-500), 0.12),
+        transparent,
+        rgba(var(--rgb-cyan-400), 0.11)
+    );
+    --settings-surface-hairline: rgba(var(--rgb-amber-400), 0.48);
+    --settings-title: rgba(var(--rgb-white), 0.96);
+    --settings-subtitle: rgba(var(--rgb-cyan-400), 0.66);
+    --settings-panel-bg: rgba(var(--rgb-slate-950), 0.5);
+    --settings-panel-border: rgba(var(--rgb-purple-500), 0.22);
+    --settings-panel-border-hover: rgba(var(--rgb-cyan-400), 0.38);
+    --settings-panel-label: rgba(var(--rgb-cyan-400), 0.66);
+    --settings-panel-value: rgba(var(--rgb-white), 0.96);
+    --settings-chip-bg: rgba(var(--rgb-purple-500), 0.12);
+    --settings-chip-bg-hover: rgba(var(--rgb-cyan-400), 0.14);
+    --settings-chip-border: rgba(var(--rgb-purple-500), 0.26);
+    --settings-chip-border-hover: rgba(var(--rgb-amber-400), 0.44);
+    --settings-chip-icon: rgba(var(--rgb-amber-400), 0.96);
+    --settings-action-bg: linear-gradient(
+        90deg,
+        rgba(var(--rgb-purple-500), 0.92),
+        rgba(var(--rgb-cyan-400), 0.88)
+    );
+    --settings-action-bg-hover: linear-gradient(
+        90deg,
+        rgba(var(--rgb-purple-500), 1),
+        rgba(var(--rgb-cyan-400), 0.96),
+        rgba(var(--rgb-amber-400), 0.86)
+    );
+    --settings-action-text: rgba(var(--rgb-white), 0.98);
+    --settings-action-border: rgba(var(--rgb-amber-400), 0.52);
+    --settings-action-shadow: 0 0 1.5rem rgba(var(--rgb-purple-500), 0.25);
+
+    --trash-page-bg:
+        radial-gradient(
+            58rem circle at 12% 0%,
+            rgba(var(--rgb-purple-500), 0.2),
+            transparent 58%
+        ),
+        radial-gradient(
+            46rem circle at 88% 16%,
+            rgba(var(--rgb-cyan-400), 0.16),
+            transparent 62%
+        ),
+        radial-gradient(
+            34rem circle at 78% 88%,
+            rgba(var(--rgb-amber-400), 0.1),
+            transparent 64%
+        ),
+        var(--portfolio-grid-bg),
+        linear-gradient(
+            180deg,
+            rgb(var(--rgb-slate-950)),
+            rgb(var(--rgb-black)) 52%,
+            rgb(var(--rgb-slate-950))
+        );
+    --trash-panel-bg:
+        var(--portfolio-code-sheen),
+        linear-gradient(
+            135deg,
+            rgba(var(--rgb-slate-950), 0.76),
+            rgba(var(--rgb-black), 0.6),
+            rgba(var(--rgb-purple-500), 0.09)
+        );
+    --trash-panel-border: rgba(var(--rgb-purple-500), 0.28);
+    --trash-panel-shadow:
+        0 0.9rem 2.5rem rgba(var(--rgb-black), 0.36),
+        0 0 1.75rem rgba(var(--rgb-purple-500), 0.15),
+        inset 0 1px 0 rgba(var(--rgb-white), 0.1);
+    --trash-tech-grid: var(--portfolio-grid-bg);
+    --trash-tech-beam:
+        linear-gradient(
+            120deg,
+            transparent 0 24%,
+            rgba(var(--rgb-purple-500), 0.28) 24.2%,
+            transparent 25% 66%,
+            rgba(var(--rgb-cyan-400), 0.24) 66.2%,
+            transparent 67%
+        );
+    --trash-tech-scanline:
+        repeating-linear-gradient(
+            0deg,
+            transparent 0 0.62rem,
+            rgba(var(--rgb-purple-500), 0.08) 0.68rem,
+            transparent 0.78rem
+        );
+    --trash-tech-panel: rgba(var(--rgb-slate-950), 0.66);
+    --trash-tech-panel-strong: rgba(var(--rgb-slate-950), 0.84);
+    --trash-tech-border: rgba(var(--rgb-purple-500), 0.28);
+    --trash-tech-border-strong: rgba(var(--rgb-cyan-400), 0.44);
+    --trash-tech-corner:
+        linear-gradient(90deg, rgba(var(--rgb-purple-500), 0.66), transparent 22%, transparent 78%, rgba(var(--rgb-cyan-400), 0.58)),
+        linear-gradient(0deg, rgba(var(--rgb-amber-400), 0.36), transparent 18%, transparent 82%, rgba(var(--rgb-purple-500), 0.36));
+    --trash-tech-shadow:
+        0 0.9rem 2.5rem rgba(var(--rgb-black), 0.36),
+        0 0 0 1px rgba(var(--rgb-purple-500), 0.18),
+        0 0 1.75rem rgba(var(--rgb-cyan-400), 0.12);
+    --trash-accent: rgba(var(--rgb-amber-400), 0.98);
+    --trash-action-bg: rgba(var(--rgb-slate-950), 0.5);
+    --trash-action-bg-hover: rgba(var(--rgb-purple-500), 0.14);
+    --trash-action-border: rgba(var(--rgb-purple-500), 0.28);
+    --trash-action-text: rgba(var(--rgb-white), 0.92);
+    --trash-countdown-text: rgba(var(--rgb-amber-400), 0.98);
+    --trash-countdown-danger: rgba(var(--rgb-rose-400), 0.98);
+    --trash-thumb-bg:
+        radial-gradient(
+            120% 90% at 20% 0%,
+            rgba(var(--rgb-purple-500), 0.16),
+            transparent 55%
+        ),
+        radial-gradient(
+            80% 80% at 100% 100%,
+            rgba(var(--rgb-cyan-400), 0.12),
+            transparent 62%
+        ),
+        rgba(var(--rgb-slate-950), 0.92);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    [data-theme="portfolio"] .nav-panel,
+    .portfolio .nav-panel,
+    [data-theme="portfolio"] [data-testid="settings-card-shell"],
+    .portfolio [data-testid="settings-card-shell"] {
+        animation: portfolio-grid-drift 18s linear infinite;
+    }
+
+    [data-theme="portfolio"] .nav-btn,
+    .portfolio .nav-btn,
+    [data-theme="portfolio"] .toolbarActionBtn,
+    .portfolio .toolbarActionBtn {
+        animation: portfolio-glow-pulse 8s ease-in-out infinite;
+    }
+}
+
+[data-theme="portfolio"] .nav-btn:hover,
+.portfolio .nav-btn:hover,
+[data-theme="portfolio"] .toolbarActionBtn:hover,
+.portfolio .toolbarActionBtn:hover {
+    box-shadow: var(--portfolio-hover-glow);
+}
+
+@keyframes portfolio-glow-pulse {
+    0%,
+    100% {
+        filter: drop-shadow(0 0 0 rgba(var(--rgb-purple-500), 0));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 0.75rem rgba(var(--rgb-cyan-400), 0.18));
+    }
+}
+
+@keyframes portfolio-grid-drift {
+    from {
+        background-position: 0 0;
+    }
+
+    to {
+        background-position: 2rem 1.5rem;
+    }
 }
 
 :root:not(.dark) {

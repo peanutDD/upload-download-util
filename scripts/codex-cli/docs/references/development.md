@@ -21,6 +21,25 @@ cargo clippy --all-targets -- -D warnings
 cargo test
 ```
 
+### 本机安装新鲜度检查
+
+源码更新后，如果直接在终端运行 `codex-auto-fix` 或 `codex`，需要确认 PATH 上的
+安装版不是旧二进制：
+
+```bash
+codex-auto-fix doctor
+codex-auto-fix doctor --json
+```
+
+如果 `doctor` 提示 binary older than source，重新安装：
+
+```bash
+cargo install --path . --force
+```
+
+GitHub Actions 主链路使用 `cargo run --manifest-path scripts/codex-cli/Cargo.toml`，
+不会依赖本机 `~/.cargo/bin` 里的旧安装版。
+
 ### Skill Pack 自动加载（零同步）
 
 本目录已经按“Skill Pack（插件）”结构组织。
@@ -73,7 +92,7 @@ ${CLAUDE_PLUGIN_ROOT}/AGENTS.md
 ```bash
 codex-auto-fix auto-fix-local \
   --repo-root /abs/path/to/repo \
-  --review-file /abs/path/to/review.md
+  --review-text "Medium: fix value"
 ```
 
 允许提交推送：
@@ -85,6 +104,10 @@ codex-auto-fix auto-fix-local \
   --yes
 ```
 
+`--review-text` 是通用 inline Review 输入；`--review-file` 适合较长文本；
+`--review-json` 仍是结构化主输入。PR workflow 的旧 `--gemini-review` 参数保留为兼容入口，
+新接入方应优先使用 `--review-text`。
+
 ### 发布建议
 
 建议在自动化里使用二进制 `codex-auto-fix`，避免与真实 Codex GPT-5.5 CLI 的 `codex` 命令冲突：
@@ -95,6 +118,9 @@ ls -lah target/release/codex-auto-fix
 ```
 
 如需在 CI 中复用，可把该二进制作为 artifacts 发布，或通过容器镜像提供。
+
+发布或复制二进制后，先运行 `codex-auto-fix doctor --json`，确认 `path.codex-auto-fix`
+和 `source.freshness` 没有 warning。
 
 ### 故障排查入口
 

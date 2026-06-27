@@ -1,0 +1,33 @@
+{
+  "task": "codex-auto-fix-relaxed-repair",
+  "intent": "Make Codex auto-fix prioritize repairing review findings instead of stopping on recoverable patch/context/soft-audit failures.",
+  "assumptions": [
+    "CODEX_AGENT_COMMAND points to the real Codex/GPT-5.5 executor.",
+    "Context mismatch, empty retry patch, and retry-generation failure are recoverable by full-file fallback.",
+    "SecurityCheck and QualityScore are soft review aids, not the user's primary goal."
+  ],
+  "risks": [
+    "Full-file fallback can produce larger diffs than SEARCH/REPLACE.",
+    "Relaxed workflow mode could hide soft audit concerns unless they remain visible in comments/JSON.",
+    "Pre-push validation must remain a hard stop to avoid publishing broken code."
+  ],
+  "dependencies": [
+    "scripts/codex-cli/src/skills.rs",
+    "scripts/codex-cli/src/runtime.rs",
+    ".github/scripts/codex-auto-fix-state.sh",
+    ".github/workflows/codex-auto-fix.yml"
+  ],
+  "plan": [
+    "Add red e2e coverage for context_mismatch with empty retry falling through to full-file fallback.",
+    "Add workflow-state coverage for relaxed pending behavior.",
+    "Continue to full-file fallback after empty initial patch, empty retry patch, or retry-generation failure.",
+    "Run workflow in CODEX_AUTO_FIX_STRICT=false mode.",
+    "Keep hard stops for protected files, checkout safety, write boundaries, and pre-push validation."
+  ],
+  "verification": [
+    "cargo test --manifest-path scripts/codex-cli/Cargo.toml --test e2e_auto_fix context_mismatch_retry_empty_still_uses_full_file_fallback -- --nocapture",
+    "cargo test --manifest-path scripts/codex-cli/Cargo.toml --test workflow_state relaxed_pending_without_fix_keeps_review_loop_running -- --nocapture",
+    "cargo fmt --manifest-path scripts/codex-cli/Cargo.toml -- --check",
+    "cargo test --manifest-path scripts/codex-cli/Cargo.toml"
+  ]
+}

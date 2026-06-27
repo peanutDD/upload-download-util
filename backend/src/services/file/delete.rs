@@ -44,11 +44,17 @@ impl FileService {
         if affected == 0 {
             return Err(AppError::NotFound);
         }
+        self.enqueue_fulltext_remove_task_best_effort(file_id).await;
         Ok(())
     }
 
     pub async fn batch_delete(&self, ids: &[Uuid], user_id: Uuid) -> Result<u64, AppError> {
-        self.files_repo.soft_delete_batch(ids, user_id).await
+        let affected = self.files_repo.soft_delete_batch(ids, user_id).await?;
+        for file_id in ids {
+            self.enqueue_fulltext_remove_task_best_effort(*file_id)
+                .await;
+        }
+        Ok(affected)
     }
 
     pub async fn list_trash(&self, user_id: Uuid) -> Result<Vec<FileResponse>, AppError> {
@@ -78,6 +84,8 @@ impl FileService {
         }
 
         let restored = self.files_repo.restore_deleted(file_id, user_id).await?;
+        self.enqueue_fulltext_index_task_best_effort(file_id, user_id)
+            .await;
         Ok(FileResponse::from(restored))
     }
 

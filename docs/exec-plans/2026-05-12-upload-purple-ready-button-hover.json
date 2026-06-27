@@ -1,0 +1,30 @@
+{
+  "date": "2026-05-12",
+  "task": "upload purple ready button hover",
+  "intent": "Apply the reference bid/artwork button treatment to the purple-theme upload dialog footer when files are ready to upload.",
+  "assumptions": [
+    "Attach files / Start Upload maps to the filled purple gradient hover.",
+    "Cancel maps to the dark outlined purple hover.",
+    "The treatment only applies in purple mode and only when the upload queue has files.",
+    "Empty queue, light/dark themes, and disabled states keep their existing behavior."
+  ],
+  "risks": [
+    "A hover-only CSS change can regress silently if scoped selectors drift.",
+    "Invalid theme token references can cause browsers to drop the hover declaration.",
+    "The repo has unrelated dirty work, so the change must stay scoped to upload dialog files and task docs."
+  ],
+  "dependencies": [
+    "frontend/src/components/files/upload/UploadDialog.tsx",
+    "frontend/src/components/files/upload/UploadDialog.css",
+    "frontend/src/components/files/upload/UploadDialogLayout.test.ts",
+    "frontend/src/styles/tokens.css"
+  ],
+  "steps": [
+    "Add a failing regression test for purple ready-state hover selectors.",
+    "Add a ready-state data attribute to the upload dialog footer.",
+    "Add purple-only hover CSS for the primary and secondary footer buttons.",
+    "Verify hover declarations use defined theme tokens.",
+    "Capture visual evidence for both hover states.",
+    "Run focused test, lint, and build."
+  ]
+}

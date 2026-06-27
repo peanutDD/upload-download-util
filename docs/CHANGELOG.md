@@ -267,6 +267,36 @@ Jaeger UI 访问地址：http://localhost:16686
 
 ### 🤖 AI 自动修复
 
+#### 🤖 Codex Auto-Fix (PR #32, round 1) — ts=1778722807
+
+- 安全扫描：发现潜在风险
+- 质量评分：0 / 100
+- 变更文件：
+  - `backend/src/api/webdav.rs`
+  - `backend/src/handlers/files/fulltext_search.rs`
+  - `backend/src/services/fulltext_search.rs`
+  - `docs/CHANGELOG.md`
+
+#### 🤖 Codex Auto-Fix (PR #32, round 1) — ts=1778722475
+
+- 安全扫描：发现潜在风险
+- 质量评分：38 / 100
+- 变更文件：
+  - `backend/src/api/webdav.rs`
+  - `backend/src/handlers/files/fulltext_search.rs`
+  - `backend/src/services/fulltext_search.rs`
+
+#### 🤖 Codex Auto-Fix (PR #32, round 1) — ts=1778712651
+
+- 安全扫描：发现潜在风险
+- 质量评分：41 / 100
+- 变更文件：
+  - `backend/src/api/webdav.rs`
+  - `backend/src/handlers/files/fulltext_search.rs`
+  - `backend/src/services/file/list.rs`
+  - `backend/src/services/fulltext_search.rs`
+  - `frontend/src/components/settings/WebDavAccessSection.tsx`
+
 #### 🤖 Codex Auto-Fix (PR #29, round 1) — ts=1778525990
 
 - 安全扫描：发现潜在风险

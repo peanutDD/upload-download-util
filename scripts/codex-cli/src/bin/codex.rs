@@ -1,5 +1,6 @@
 use clap::{Parser, Subcommand};
 use codex_cli::auto_fix_report;
+use codex_cli::doctor;
 use codex_cli::llm::CodexClient;
 use codex_cli::repo;
 use codex_cli::review_json;
@@ -51,6 +52,8 @@ enum Commands {
         #[arg(long)]
         pr_number: u32,
         #[arg(long)]
+        review_text: Option<String>,
+        #[arg(long)]
         gemini_review: Option<String>,
         #[arg(long)]
         review_json: Option<PathBuf>,
@@ -82,6 +85,8 @@ enum Commands {
         #[arg(long)]
         repo_root: PathBuf,
         #[arg(long)]
+        review_text: Option<String>,
+        #[arg(long)]
         review_file: Option<PathBuf>,
         #[arg(long)]
         review_json: Option<PathBuf>,
@@ -109,6 +114,11 @@ enum Commands {
         input: PathBuf,
         #[arg(long)]
         output: PathBuf,
+    },
+    /// 检查本机安装、PATH、依赖和模型执行器配置是否与源码同步。
+    Doctor {
+        #[arg(long, default_value_t = false)]
+        json: bool,
     },
     /// 加载本地 Skill Pack：自动发现 `skills/*/SKILL.md` 并可执行。
     SkillPack {
@@ -209,6 +219,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Commands::PrAutoFix {
             pr_number,
+            review_text,
             gemini_review,
             review_json: review_json_path,
             max_rounds,
@@ -226,8 +237,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let client = CodexClient::new()?;
             // 日志走 stderr；stdout 只输出 JSON 结果（供 workflow 解析）。
             eprintln!("🤖 启动 PR Auto-Fix #{}", pr_number);
-            if gemini_review.is_none() && review_json_path.is_none() {
-                eprintln!("❌ 需要提供 --review-json 或 --gemini-review");
+            if review_text.is_some() && gemini_review.is_some() {
+                eprintln!("❌ 不能同时提供 --review-text 和 --gemini-review");
+                std::process::exit(2);
+            }
+            if review_text.is_none() && gemini_review.is_none() && review_json_path.is_none() {
+                eprintln!("❌ 需要提供 --review-json、--review-text 或 --gemini-review");
                 std::process::exit(2);
             }
             let initial_review_data = review_json_path
@@ -241,10 +256,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     std::env::var("GITHUB_WORKSPACE").unwrap_or_else(|_| ".".into())
                 });
 
-            let mut effective_review = gemini_review.clone().unwrap_or_default();
+            let mut effective_review = review_text
+                .as_ref()
+                .or(gemini_review.as_ref())
+                .cloned()
+                .unwrap_or_default();
             if let Some(pre_skill) = pre_skill.as_deref() {
                 if effective_review.is_empty() {
-                    eprintln!("❌ --pre-skill 需要 --gemini-review 作为输入");
+                    eprintln!("❌ --pre-skill 需要 --review-text 或 --gemini-review 作为输入");
                     std::process::exit(2);
                 }
                 let plugin_root = pre_skill_pack_root
@@ -307,6 +326,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Commands::AutoFixLocal {
             repo_root,
+            review_text,
             review_file,
             review_json: review_json_path,
             max_rounds,
@@ -317,16 +337,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         } => {
             let client = CodexClient::new()?;
             eprintln!(
-                "🤖 启动本地 Auto-Fix: repo_root={:?}, review_file={:?}, review_json={:?}",
-                repo_root, review_file, review_json_path
+                "🤖 启动本地 Auto-Fix: repo_root={:?}, review_text={}, review_file={:?}, review_json={:?}",
+                repo_root,
+                review_text.is_some(),
+                review_file,
+                review_json_path
             );
-            if review_file.is_none() && review_json_path.is_none() {
-                eprintln!("❌ 需要提供 --review-json 或 --review-file");
+            if review_text.is_some() && review_file.is_some() {
+                eprintln!("❌ 不能同时提供 --review-text 和 --review-file");
                 std::process::exit(2);
             }
-            let review_text = review_file
-                .as_ref()
-                .map(fs::read_to_string)
+            if review_text.is_none() && review_file.is_none() && review_json_path.is_none() {
+                eprintln!("❌ 需要提供 --review-json、--review-text 或 --review-file");
+                std::process::exit(2);
+            }
+            let review_text = review_text
+                .clone()
+                .map(Ok)
+                .or_else(|| review_file.as_ref().map(fs::read_to_string))
                 .transpose()?
                 .unwrap_or_default();
             let initial_review_data = review_json_path
@@ -371,6 +399,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let report = auto_fix_report::build_weekly_failure_report(&raw)?;
             fs::write(output, report)?;
             println!("wrote {}", output.display());
+        }
+        Commands::Doctor { json } => {
+            let report = doctor::build_report();
+            if *json {
+                println!("{}", serde_json::to_string_pretty(&report)?);
+            } else {
+                println!("{}", doctor::render_human(&report));
+            }
         }
         Commands::SkillPack { command } => match command {
             SkillPackCommands::List { plugin_root, json } => {

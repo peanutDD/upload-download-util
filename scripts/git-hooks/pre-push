@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "$repo_root"
+
+if [[ "${SKIP_CODEX_VERIFY:-}" == "1" ]]; then
+  echo "SKIP_CODEX_VERIFY=1: skipping Codex pre-push verification"
+  exit 0
+fi
+
+exec bash scripts/codex-cli/tools/pre-push-verify.sh --changed

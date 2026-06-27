@@ -75,6 +75,30 @@ impl<'a> FoldersRepo<'a> {
         }
     }
 
+    /// 查找指定父文件夹下的同名文件夹。
+    pub async fn find_by_name_and_parent(
+        &self,
+        user_id: Uuid,
+        parent_id: Option<Uuid>,
+        name: &str,
+    ) -> Result<Option<Folder>, AppError> {
+        sqlx::query_as::<_, Folder>(
+            r#"
+            SELECT id, user_id, name, parent_id, created_at, updated_at
+            FROM folders
+            WHERE user_id = $1
+              AND parent_id IS NOT DISTINCT FROM $2
+              AND name = $3
+            "#,
+        )
+        .bind(user_id)
+        .bind(parent_id)
+        .bind(name)
+        .fetch_optional(self.pool)
+        .await
+        .map_err(AppError::from)
+    }
+
     /// 检查同级目录下是否存在同名文件夹
     pub async fn name_exists_in_parent(
         &self,

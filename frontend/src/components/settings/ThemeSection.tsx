@@ -1,18 +1,19 @@
 import { Palette } from "lucide-react";
 import { cn } from "../../utils/cn";
 import { useThemeStore } from "../../store/themeStore";
+import type { Theme } from "../../store/themeStore";
 import SettingsCard from "./SettingsCard";
 
-type ThemeOption = "dark" | "light" | "purple";
-
 const OPTIONS: Array<{
-  value: ThemeOption;
+  value: Theme;
   title: string;
   description: string;
 }> = [
   { value: "dark", title: "Dark", description: "Green dark theme." },
   { value: "light", title: "Light", description: "Use light theme." },
   { value: "purple", title: "Purple", description: "Classic purple theme." },
+  { value: "terminal", title: "Terminal", description: "Blackglass neon terminal." },
+  { value: "portfolio", title: "Portfolio", description: "Neon developer portfolio." },
 ];
 
 export default function ThemeSection() {
@@ -28,7 +29,7 @@ export default function ThemeSection() {
       }
       data-oid="gg52g.s"
     >
-      <div className="grid gap-[clamp(0.39rem,0.9vw,0.5rem)] sm:grid-cols-3" data-oid="yfy4n_7">
+      <div className="grid gap-[clamp(0.39rem,0.9vw,0.5rem)] sm:grid-cols-2 xl:grid-cols-5" data-oid="yfy4n_7">
         {OPTIONS.map((opt) => (
           <button
             key={opt.value}

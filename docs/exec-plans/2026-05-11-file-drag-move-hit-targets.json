@@ -1,0 +1,37 @@
+{
+  "date": "2026-05-11",
+  "task": "file drag move hit targets",
+  "intent": "Fix desktop and mobile file drag-to-folder movement by aligning release/long-press hit targets with visible card surfaces.",
+  "assumptions": [
+    "The shared handleDropOnFolder action layer and folder move API are already correct.",
+    "The failure happens before the shared action layer is called.",
+    "Desktop users can release on any visible part of a folder card.",
+    "Mobile users can long-press the file thumbnail center where hover-only preview controls exist in the DOM.",
+    "Mobile pointerup can be delivered outside the source card on some touch paths.",
+    "Native HTML draggable on touch browsers can preempt the custom long-press pointer path and surface only system haptic feedback."
+  ],
+  "risks": [
+    "Moving desktop drop handlers could break folder drag start if the nested draggable thumb is changed.",
+    "Mobile long-press must still ignore menus, checkboxes, and normal visible controls.",
+    "Hover preview clicks must keep working on desktop.",
+    "Selected-item batch drag semantics must remain unchanged.",
+    "Desktop mouse drag/drop must continue using native HTML drag."
+  ],
+  "dependencies": [
+    "frontend/src/components/files/grid/FileCard.tsx",
+    "frontend/src/components/files/grid/FolderCard.tsx",
+    "frontend/src/components/files/grid/FileCardMobileDragMove.test.tsx",
+    "frontend/src/components/files/grid/FolderCardDragMove.test.tsx",
+    "frontend/src/hooks/files/useFileActions.ts"
+  ],
+  "steps": [
+    "Add failing tests for desktop full-folder-card drop and mobile hidden-preview long-press startup.",
+    "Add a failing test for mobile pointerup delivered outside the source file card.",
+    "Move folder card drop handling to the full data-folder-id card surface.",
+    "Mark hover-only preview action and keep its overlay non-interactive until desktop hover.",
+    "Register global mobile pointerup/pointercancel cleanup while a file long-press is pending or active.",
+    "Disable native HTML draggable on coarse pointers and suppress native contextmenu/callout while touch drag is pending.",
+    "Verify focused grid tests, drag-move action/list regressions, full frontend tests, lint, and build.",
+    "Add a permanent constraint and quality score entry."
+  ]
+}

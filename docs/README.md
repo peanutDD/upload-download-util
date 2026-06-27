@@ -39,6 +39,7 @@ docs/
 │   ├── COMMERCIALIZATION_PLAN.md      # 商业化计划
 │   └── COMMERCIALIZATION_PLAN_RAW.md  # 商业化计划草稿
 └── references/                        # 参考资料
+    ├── fulltext-ocr-usage.md          # 全文搜索与 OCR 原理、使用清单、排查指南
     └── workflow-integration.md        # 工作流集成参考
 ```
 
@@ -72,6 +73,7 @@ docs/
 |------|------|
 | `NEXT_STEPS.md` | 项目路线图和后续改进计划 |
 | `exec-plans/*.md` | 各阶段执行计划文档 |
+| `exec-plans/2026-05-15-webdav-fulltext-ocr-implementation-plan.md` | WebDAV、全文搜索、OCR 的分阶段实现与重构计划 |
 
 ### 📈 项目状态
 | 文档 | 描述 |
@@ -84,6 +86,12 @@ docs/
 |------|------|
 | `BACKEND_UPGRADE_2026-04-28.md` | 后端依赖升级详细指南 |
 | `UPGRADE_RECOMMENDATIONS.md` | 升级建议汇总（按优先级排序） |
+
+### 🔎 搜索与 OCR
+| 文档 | 描述 |
+|------|------|
+| `references/fulltext-ocr-usage.md` | 全文搜索与 OCR 的原理、API、配置、worker 使用清单和排查指南 |
+| `exec-plans/2026-05-15-webdav-fulltext-ocr-implementation-plan.md` | WebDAV、全文搜索、OCR 实现计划、模块边界、测试门禁 |
 
 ### 📜 约束与规范
 | 文档 | 描述 |
@@ -170,5 +178,5 @@ docs/
 
 ---
 
-**最后更新**: 2026-05-04  
-**文档版本**: v2.4
+**最后更新**: 2026-05-14
+**文档版本**: v2.5

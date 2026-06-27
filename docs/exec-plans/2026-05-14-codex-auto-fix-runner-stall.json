@@ -1,0 +1,27 @@
+{
+  "date": "2026-05-14",
+  "task": "codex-auto-fix-runner-stall-closure",
+  "intent": "Stop Codex Auto Fix local runner/codex-fix runs from stale-blocking or recursively hanging on pull_request_review review events.",
+  "assumptions": [
+    "Same-PR review events must remain serialized.",
+    "Different PRs must not share a default-branch/actor concurrency group.",
+    "CODEX_AGENT_COMMAND must point to the real Codex CLI executor, not codex-auto-fix itself.",
+    "Existing job, step, agent, and CLI budget timeouts remain valid."
+  ],
+  "risks": [
+    "Canceling active runs can interrupt publish or state-machine advancement.",
+    "github.ref based concurrency can stale-block unrelated PRs.",
+    "Recursive CODEX_AGENT_COMMAND configuration looks like a hung runner unless preflight blocks it."
+  ],
+  "implementation": [
+    "Use PR-number workflow concurrency with cancel-in-progress false.",
+    "Run codex-auto-fix doctor --json before pr-auto-fix.",
+    "Warn from doctor when CODEX_AGENT_COMMAND points to codex-auto-fix.",
+    "Update constraints and CLI docs.",
+    "Add workflow_state and doctor regression tests."
+  ],
+  "verification": [
+    "cargo test --manifest-path scripts/codex-cli/Cargo.toml --test workflow_state codex_auto_fix",
+    "cargo test --manifest-path scripts/codex-cli/Cargo.toml --test doctor doctor_warns_when_agent_command_recurses_into_auto_fix_binary"
+  ]
+}

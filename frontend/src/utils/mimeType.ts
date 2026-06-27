@@ -134,20 +134,55 @@ export function isPreviewSupported(mime: string): boolean {
   );
 }
 
+const PREVIEW_MIME_BY_EXTENSION: Record<string, string> = {
+  csv: 'text/csv',
+  gif: 'image/gif',
+  jpeg: 'image/jpeg',
+  jpg: 'image/jpeg',
+  json: 'application/json',
+  m4a: 'audio/mp4',
+  markdown: 'text/markdown',
+  md: 'text/markdown',
+  mov: 'video/quicktime',
+  mp3: 'audio/mpeg',
+  mp4: 'video/mp4',
+  pdf: 'application/pdf',
+  png: 'image/png',
+  txt: 'text/plain',
+  wav: 'audio/wav',
+  webm: 'video/webm',
+  webp: 'image/webp',
+  xml: 'application/xml',
+};
+
+function extensionFromFilename(filename?: string): string {
+  if (!filename) return '';
+  const lastDot = filename.lastIndexOf('.');
+  if (lastDot < 0 || lastDot === filename.length - 1) return '';
+  return filename.slice(lastDot + 1).toLowerCase();
+}
+
+function effectivePreviewMime(mime: string, filename?: string): string {
+  const normalized = mime.trim().toLowerCase();
+  if (normalized && normalized !== 'application/octet-stream') return normalized;
+  return PREVIEW_MIME_BY_EXTENSION[extensionFromFilename(filename)] ?? normalized;
+}
+
 /** 获取预览类型信息 */
 export function getPreviewKind(mime: string, filename?: string) {
-  const isGif = isGifType(mime);
-  const isMarkdown = isMarkdownType(mime, filename);
+  const effectiveMime = effectivePreviewMime(mime, filename);
+  const isGif = isGifType(effectiveMime);
+  const isMarkdown = isMarkdownType(effectiveMime, filename);
 
   return {
-    supported: isPreviewSupported(mime) || isMarkdown,
+    supported: isPreviewSupported(effectiveMime) || isMarkdown,
     // GIF 在预览层面按“视频”处理（走 <video> 管线），避免大 GIF 卡顿
-    isImage: isImageType(mime) && !isGif,
-    isPDF: isPdfType(mime),
-    isText: isTextType(mime),
+    isImage: isImageType(effectiveMime) && !isGif,
+    isPDF: isPdfType(effectiveMime),
+    isText: isTextType(effectiveMime),
     isMarkdown,
-    isVideo: isVideoType(mime) || isGif,
-    isAudio: isAudioType(mime),
+    isVideo: isVideoType(effectiveMime) || isGif,
+    isAudio: isAudioType(effectiveMime),
     // Ugoira 支持已移除，这里固定为 false，避免前端再走任何 Ugoira 分支
     isUgoira: false,
   };

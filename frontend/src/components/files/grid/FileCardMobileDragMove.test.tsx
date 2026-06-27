@@ -42,14 +42,80 @@ function renderFile(overrides: Partial<ComponentProps<typeof FileCard>> = {}) {
   return render(<FileCard {...fileCardProps(overrides)} />);
 }
 
+function mockPointerMedia(isDesktopPointer: boolean) {
+  Object.defineProperty(window, "matchMedia", {
+    configurable: true,
+    value: vi.fn((query: string) => ({
+      matches:
+        query === "(hover: hover) and (pointer: fine)" && isDesktopPointer,
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
+}
+
 describe("FileCard mobile drag move", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    mockPointerMedia(false);
   });
 
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
+  });
+
+  it("does not expose native HTML drag on coarse pointer devices", () => {
+    renderFile();
+    const sourceCard = screen.getByTitle(file.original_filename).closest("[data-file-id]");
+
+    expect(sourceCard).not.toHaveAttribute("draggable", "true");
+  });
+
+  it("keeps the unselected checkbox visible on coarse pointer devices", () => {
+    renderFile();
+
+    const checkbox = screen.getByRole("button", { name: "选择" });
+
+    expect(checkbox).not.toHaveClass("invisible");
+    expect(checkbox).toHaveClass("selection-checkbox-hover-reveal");
+  });
+
+  it("uses a high-contrast unselected checkbox treatment", () => {
+    const { container } = renderFile();
+
+    expect(container.querySelector(".card-checkbox-unselected")).toBeTruthy();
+    expect(
+      container.querySelector(".card-checkbox-unselected-ring"),
+    ).toBeTruthy();
+  });
+
+  it("keeps native HTML drag on desktop pointer devices", () => {
+    mockPointerMedia(true);
+    renderFile();
+    const sourceCard = screen.getByTitle(file.original_filename).closest("[data-file-id]");
+
+    expect(sourceCard).toHaveAttribute("draggable", "true");
+  });
+
+  it("prevents native long-press callout while a touch drag is pending", () => {
+    renderFile();
+    const sourceCard = screen.getByTitle(file.original_filename).closest("[data-file-id]");
+
+    fireEvent.pointerDown(sourceCard as Element, {
+      pointerId: 7,
+      pointerType: "touch",
+      clientX: 16,
+      clientY: 16,
+      isPrimary: true,
+    });
+
+    expect(fireEvent.contextMenu(sourceCard as Element)).toBe(false);
   });
 
   it("starts mobile file drag only after long press and drops on a target folder", () => {
@@ -103,6 +169,75 @@ describe("FileCard mobile drag move", () => {
 
     expect(onMobileFileDrop).toHaveBeenCalledWith("folder-target", file.id);
     expect(onMobileFileDragEnd).toHaveBeenCalledTimes(1);
+  });
+
+  it("starts mobile file drag when long pressing the hidden preview action", () => {
+    const onMobileFileDrop = vi.fn();
+    const onMobileFileDragStart = vi.fn();
+    renderFile({ onMobileFileDrop, onMobileFileDragStart });
+    const sourceCard = screen.getByTitle(file.original_filename).closest("[data-file-id]");
+    const previewButton = screen.getByRole("button", { name: "预览" });
+    const targetFolder = document.createElement("div");
+    targetFolder.dataset.folderId = "folder-target";
+
+    Object.defineProperty(document, "elementFromPoint", {
+      configurable: true,
+      value: vi.fn(() => targetFolder),
+    });
+
+    fireEvent.pointerDown(previewButton, {
+      pointerId: 5,
+      pointerType: "touch",
+      clientX: 32,
+      clientY: 32,
+      isPrimary: true,
+    });
+    act(() => {
+      vi.advanceTimersByTime(450);
+    });
+    fireEvent.pointerUp(sourceCard as Element, {
+      pointerId: 5,
+      pointerType: "touch",
+      clientX: 120,
+      clientY: 120,
+      isPrimary: true,
+    });
+
+    expect(onMobileFileDragStart).toHaveBeenCalledWith(file.id);
+    expect(onMobileFileDrop).toHaveBeenCalledWith("folder-target", file.id);
+  });
+
+  it("finishes mobile file drag when pointerup is delivered outside the source card", () => {
+    const onMobileFileDrop = vi.fn();
+    renderFile({ onMobileFileDrop });
+    const sourceCard = screen.getByTitle(file.original_filename).closest("[data-file-id]");
+    const targetFolder = document.createElement("div");
+    targetFolder.dataset.folderId = "folder-target";
+
+    Object.defineProperty(document, "elementFromPoint", {
+      configurable: true,
+      value: vi.fn(() => targetFolder),
+    });
+
+    fireEvent.pointerDown(sourceCard as Element, {
+      pointerId: 6,
+      pointerType: "touch",
+      clientX: 16,
+      clientY: 16,
+      isPrimary: true,
+    });
+    act(() => {
+      vi.advanceTimersByTime(450);
+    });
+    fireEvent.pointerUp(window, {
+      pointerId: 6,
+      pointerType: "touch",
+      clientX: 120,
+      clientY: 120,
+      isPrimary: true,
+    });
+
+    expect(onMobileFileDrop).toHaveBeenCalledWith("folder-target", file.id);
   });
 
   it("resets suppressed preview state on the next pointer interaction", () => {

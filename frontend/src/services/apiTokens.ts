@@ -6,11 +6,17 @@ export interface ApiToken {
   last_used_at: string | null;
   expires_at: string | null;
   created_at: string;
+  webdav_enabled: boolean;
+  webdav_read_only: boolean;
+  webdav_root_folder_id: string | null;
 }
 
 export interface CreateApiTokenRequest {
   name: string;
   expires_in_days?: number;
+  webdav_enabled?: boolean;
+  webdav_read_only?: boolean;
+  webdav_root_folder_id?: string | null;
 }
 
 export interface CreateApiTokenResponse {
@@ -20,6 +26,9 @@ export interface CreateApiTokenResponse {
     token: string; // Only shown once
     expires_at: string | null;
     created_at: string;
+    webdav_enabled: boolean;
+    webdav_read_only: boolean;
+    webdav_root_folder_id: string | null;
   };
 }
 

@@ -1,0 +1,15 @@
+HTTP/1.1 206 Partial Content
+accept-ranges: bytes
+content-type: application/x-www-form-urlencoded
+content-length: 6
+content-range: bytes 13-18/19
+vary: origin, access-control-request-method, access-control-request-headers
+access-control-allow-origin: *
+dav: 1, 2
+ms-author-via: DAV
+allow: OPTIONS, PROPFIND, MKCOL, PUT, GET, HEAD, DELETE, MOVE, COPY, LOCK, UNLOCK
+x-trace-id: edfbedbf-cb05-43a2-923a-e31ad2295c11
+x-request-id: edfbedbf-cb05-43a2-923a-e31ad2295c11
+date: Sat, 23 May 2026 16:24:10 GMT
+
+smoke

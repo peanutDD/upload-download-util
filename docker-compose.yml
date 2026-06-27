@@ -45,6 +45,10 @@ services:
       PORT: 3000
       CORS_ORIGIN: "*"
       FRONTEND_URL: http://localhost:5173
+      OCR_ENABLED: "true"
+      OCR_TESSERACT_BIN: tesseract
+      OCR_PDFTOPPM_BIN: pdftoppm
+      OCR_PDF_MAX_PAGES: 5
     ports:
       - "3000:3000"
     volumes:

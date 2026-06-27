@@ -1,0 +1,46 @@
+{
+  "date": "2026-05-11",
+  "task": "codex-cli implementation documentation",
+  "status": "completed",
+  "assumptions": [
+    "This task only changes documentation and navigation, not codex-cli runtime behavior.",
+    "The implementation document must describe current source behavior, even when older docs use stale wording.",
+    "The reader needs enough detail to diagnose failures and make targeted fixes."
+  ],
+  "risks": [
+    "Long implementation docs can drift from source code; paths, function names, and contracts must be explicit.",
+    "Existing docs include older unified-diff-first language; the new document must state the current SEARCH/REPLACE primary path.",
+    "Documentation-only work cannot use a meaningful failing runtime test, so verification relies on Rust checks and link/path review."
+  ],
+  "dependencies": [
+    "scripts/codex-cli/Cargo.toml",
+    "scripts/codex-cli/src/bin/codex.rs",
+    "scripts/codex-cli/src/lib.rs",
+    "scripts/codex-cli/src/types.rs",
+    "scripts/codex-cli/src/llm.rs",
+    "scripts/codex-cli/src/repo.rs",
+    "scripts/codex-cli/src/runtime.rs",
+    "scripts/codex-cli/src/pipeline.rs",
+    "scripts/codex-cli/src/skills.rs",
+    "scripts/codex-cli/src/patch/mod.rs",
+    "scripts/codex-cli/src/patch/search_replace.rs",
+    "scripts/codex-cli/src/patch/unified_diff.rs",
+    "scripts/codex-cli/src/review_json.rs",
+    "scripts/codex-cli/src/doctor.rs",
+    "scripts/codex-cli/src/auto_fix_report.rs",
+    "scripts/codex-cli/docs/README.md"
+  ],
+  "steps": [
+    "completed: Read repository and codex-cli scoped rules.",
+    "completed: Inspect current codex-cli implementation files.",
+    "completed: Add scripts/codex-cli/docs/implementation.md.",
+    "completed: Update scripts/codex-cli/docs/README.md navigation.",
+    "completed: Run cargo fmt --check and cargo test for scripts/codex-cli.",
+    "completed: Update docs/quality-score.md with this documentation task result."
+  ],
+  "verification": [
+    "awk fence count for scripts/codex-cli/docs/implementation.md returned 150",
+    "cargo fmt --check passed in scripts/codex-cli",
+    "cargo test passed in scripts/codex-cli"
+  ]
+}

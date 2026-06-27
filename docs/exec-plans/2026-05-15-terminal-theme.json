@@ -1,0 +1,34 @@
+{
+  "date": "2026-05-15",
+  "task": "terminal-theme",
+  "summary": "Add Terminal as a fourth frontend theme inspired by blackglass terminal surfaces and cyan/mint neon controls.",
+  "assumptions": [
+    "Terminal is a new fourth theme, not a replacement for dark, light, or purple.",
+    "The persisted value is terminal and the display name is Terminal.",
+    "Terminal keeps dark-mode base behavior by applying both data-theme=\"terminal\" and the dark class.",
+    "Motion is CSS-only and lightweight."
+  ],
+  "risks": [
+    "Toggle cycle could skip terminal if only UI labels are updated.",
+    "DOM classes could fail to include terminal while state persists correctly.",
+    "Theme picker UI could omit the fourth option.",
+    "Token coverage could miss filelist, upload, preview, settings, or trash surfaces."
+  ],
+  "dependencies": [
+    "frontend/src/store/themeStore.ts",
+    "frontend/src/components/common/ThemeToggle.tsx",
+    "frontend/src/components/settings/ThemeSection.tsx",
+    "frontend/src/styles/tokens.css",
+    "Vitest",
+    "ESLint",
+    "token and hardcoding checks",
+    "Vite build"
+  ],
+  "verification": [
+    "focused frontend tests",
+    "npm run lint",
+    "npm run check:tokens",
+    "npm run check:hardcoding",
+    "npm run build"
+  ]
+}

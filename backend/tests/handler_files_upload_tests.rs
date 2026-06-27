@@ -59,6 +59,42 @@ async fn test_upload_file_handler_happy_path() {
 
 #[tokio::test]
 #[serial(upload_handler_db)]
+async fn test_upload_file_handler_infers_previewable_mime_from_filename() {
+    init_test_env();
+    let pool = create_test_pool().await;
+    cleanup_test_data(&pool).await;
+
+    let (_user_id, token) = login_and_get_token(&pool, "upload_infer_mime").await;
+    let app = build_test_app(&pool).await;
+
+    let boundary = "test-boundary";
+    let body = format!(
+        "--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; filename=\"finder-image.png\"\r\nContent-Type: application/octet-stream\r\n\r\npng-bytes\r\n--{boundary}--\r\n"
+    );
+
+    let (auth_name, auth_value) = bearer_auth_header(&token);
+    let response = app
+        .oneshot(
+            axum::http::Request::post("/api/v1/files/upload")
+                .header(
+                    "Content-Type",
+                    format!("multipart/form-data; boundary={boundary}"),
+                )
+                .header(auth_name, auth_value)
+                .body(AxumBody::from(body))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+    let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+    assert_eq!(json["file"]["mime_type"], "image/png");
+}
+
+#[tokio::test]
+#[serial(upload_handler_db)]
 async fn test_upload_file_handler_no_file_field() {
     init_test_env();
     let pool = create_test_pool().await;

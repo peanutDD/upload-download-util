@@ -1,0 +1,33 @@
+{
+  "date": "2026-05-11",
+  "task": "filter dropdown scroll anchoring",
+  "intent": "Fix Type and Sort dropdowns so they scroll with the file toolbar and use a more opaque, readable panel surface.",
+  "assumptions": [
+    "The dropdown floating bug is caused by body-level portal rendering plus viewport-fixed positioning.",
+    "The follow-up cover bug is caused by the scaled toolbar wrapper creating a transform stacking context below file content.",
+    "The filter toolbar can host absolute dropdown panels without clipping.",
+    "Dropdown panels should use stronger opacity than the filter trigger surface."
+  ],
+  "risks": [
+    "Moving the dropdown back into the toolbar could reintroduce clipping if overflow is hidden.",
+    "Sibling filter cards could cover the open dropdown without a higher stacking order.",
+    "Raising only the dropdown panel can still fail if its transformed toolbar parent remains under later file-content layers.",
+    "Theme tokens must remain readable in both dark and light modes."
+  ],
+  "dependencies": [
+    "frontend/src/components/common/DropdownMenu.tsx",
+    "frontend/src/components/files/list/FileListFilters.css",
+    "frontend/src/components/files/list/FileListGlass.css",
+    "frontend/src/components/files/list/FileListFilters.test.tsx",
+    "frontend/src/styles/tokens.css"
+  ],
+  "steps": [
+    "Add failing regression tests for in-container dropdown rendering and non-fixed CSS.",
+    "Remove createPortal and fixed viewport positioning from DropdownMenu.",
+    "Anchor the dropdown panel absolutely to the trigger card and raise the open card above siblings.",
+    "Raise the transformed toolbar wrapper above file content so the in-container dropdown is not covered.",
+    "Add dropdown-specific stronger surface tokens for dark and light themes.",
+    "Run focused filter tests, full frontend tests, lint, and build.",
+    "Add permanent constraint and quality score entry."
+  ]
+}

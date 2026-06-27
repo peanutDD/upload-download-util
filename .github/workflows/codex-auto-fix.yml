@@ -15,10 +15,23 @@ permissions:
 env:
   MAX_ROUNDS: 2
   USE_REVIEW_JSON: true
+  CODEX_JOB_TIMEOUT_MINUTES: 55
+  CODEX_PR_AUTO_FIX_STEP_TIMEOUT_MINUTES: 45
+  CODEX_AGENT_TIMEOUT_SECONDS: 360
+  CODEX_AUTO_FIX_BUDGET_SECONDS: 2400
+  CODEX_AUTO_FIX_RESERVE_SECONDS: 180
+  CODEX_PR_TARBALL_BUDGET_SECONDS: 120
+  CODEX_AUTO_FIX_STRICT: false
+  CODEX_AUTO_FIX_DIRECT_FULL_FILE: true
+  CODEX_AGENT_MODEL: gpt-5.5
+  CODEX_AUTO_FIX_WORKFLOW_OWNS_REVIEW: true
+  CODEX_AUTO_FIX_VERIFY_COMMANDS: |
+    set -euo pipefail
+    bash scripts/codex-cli/tools/pre-push-verify.sh --changed
 
 concurrency:
-  group: codex-auto-fix-${{ github.ref }}-${{ github.actor }}
-  cancel-in-progress: true
+  group: codex-auto-fix-pr-${{ github.event.issue.number || github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: false
 
 jobs:
   codex-fix:
@@ -37,7 +50,7 @@ jobs:
         && github.event.review.user.login == 'gemini-code-assist[bot]'
       )
     runs-on: file-server
-    timeout-minutes: 35
+    timeout-minutes: 55
     env:
       PR_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
       REVIEW_ID: ${{ github.event.review.id || '' }}
@@ -50,6 +63,15 @@ jobs:
           HEAD_REF="$(gh pr view "${PR_NUMBER}" --repo "${GITHUB_REPOSITORY}" --json headRefName -q '.headRefName')"
           HEAD_SHA="$(gh pr view "${PR_NUMBER}" --repo "${GITHUB_REPOSITORY}" --json headRefOid -q '.headRefOid')"
           echo "PR head: ${HEAD_REF}@${HEAD_SHA}"
+          bootstrap_started_at="$(date +%s)"
+
+          log_bootstrap() {
+            local status="$1"
+            local now
+            now="$(date +%s)"
+            shift
+            echo "bootstrap_status=${status} elapsed=$((now - bootstrap_started_at))s $*"
+          }
 
           archive_is_valid() {
             tar -tzf "$1" >/dev/null 2>&1
@@ -58,24 +80,25 @@ jobs:
           download_pr_head_archive() {
             local archive="$1"
             local tmp_archive="${archive}.tmp"
-            local api_path="repos/${GITHUB_REPOSITORY}/tarball/${HEAD_SHA}"
-            local api_url="https://api.github.com/${api_path}"
+            local api_url="https://api.github.com/repos/${GITHUB_REPOSITORY}/tarball/${HEAD_SHA}"
+            local tarball_budget="${CODEX_PR_TARBALL_BUDGET_SECONDS:-120}"
+            local tarball_deadline=$(( $(date +%s) + tarball_budget ))
+            local attempt=1
 
             rm -f "${archive}" "${tmp_archive}"
-            for attempt in 1 2 3 4 5; do
-              if gh api -H "Accept: application/vnd.github+json" "${api_path}" > "${tmp_archive}" \
-                && archive_is_valid "${tmp_archive}"; then
-                mv "${tmp_archive}" "${archive}"
-                return 0
+            while [[ "$(date +%s)" -lt "${tarball_deadline}" ]]; do
+              local remaining=$((tarball_deadline - $(date +%s)))
+              if [[ "${remaining}" -lt 15 ]]; then
+                break
               fi
 
-              rm -f "${tmp_archive}"
+              log_bootstrap downloading "attempt=${attempt} remaining=${remaining}s path=curl-http1.1"
               if curl --fail --location --silent --show-error \
                 --http1.1 \
-                --retry 3 \
+                --retry 1 \
                 --retry-all-errors \
-                --connect-timeout 20 \
-                --max-time 180 \
+                --connect-timeout 10 \
+                --max-time 45 \
                 -H "Authorization: Bearer ${GH_TOKEN}" \
                 -H "Accept: application/vnd.github+json" \
                 -H "X-GitHub-Api-Version: 2022-11-28" \
@@ -86,19 +109,54 @@ jobs:
                 return 0
               fi
 
+              local bytes=0
+              if [[ -f "${tmp_archive}" ]]; then
+                bytes="$(wc -c < "${tmp_archive}" | tr -d ' ')"
+              fi
               rm -f "${tmp_archive}"
-              echo "::warning::PR tarball download failed for ${HEAD_SHA}, attempt ${attempt}/5"
-              sleep $((attempt * 10))
+              echo "::warning::PR tarball download failed for ${HEAD_SHA}, attempt ${attempt}, bytes=${bytes}, remaining=${remaining}s"
+              sleep 5
+              attempt=$((attempt + 1))
             done
+
+            echo "bootstrap_status=blocked reason=tarball_budget_exhausted"
+            log_bootstrap blocked "tarball budget exhausted after ${tarball_budget}s"
 
             return 1
           }
 
           workspace="${GITHUB_WORKSPACE}"
           seed="${CODEX_LOCAL_REPO_SEED}"
+          mirror="${CODEX_LOCAL_BARE_MIRROR:-}"
           mkdir -p "${workspace}"
 
+          is_bare_mirror() {
+            [[ -n "$1" ]] && [[ -d "$1" ]] && git -C "$1" rev-parse --is-bare-repository >/dev/null 2>&1
+          }
+
+          sync_local_bare_mirror() {
+            if ! is_bare_mirror "${mirror}"; then
+              log_bootstrap local "bare mirror unavailable at ${mirror}; using seed/tarball fallback"
+              return 0
+            fi
+
+            log_bootstrap local "refreshing bare mirror ${mirror}"
+            git -C "${mirror}" remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git" || true
+            git -C "${mirror}" \
+              -c http.lowSpeedLimit=1024 \
+              -c http.lowSpeedTime=30 \
+              fetch --prune origin \
+              "+refs/heads/*:refs/heads/*" \
+              "+refs/pull/*/head:refs/pull/*/head" || true
+          }
+
+          sync_local_bare_mirror
+
           if [[ -d "${workspace}/.git" ]]; then
+            git -C "${workspace}" remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git" || true
+          elif is_bare_mirror "${mirror}"; then
+            log_bootstrap local "cloning bare mirror ${mirror}"
+            git clone --no-hardlinks "${mirror}" "${workspace}"
             git -C "${workspace}" remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git" || true
           elif [[ -d "${seed}/.git" ]]; then
             git clone --no-hardlinks "${seed}" "${workspace}"
@@ -113,7 +171,48 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          prepare_reused_workspace() {
+            if [[ ! -d "${workspace}/.git" ]]; then
+              return 0
+            fi
+
+            local workspace_real=""
+            local seed_real=""
+            workspace_real="$(cd "${workspace}" && pwd -P)"
+            if [[ -d "${seed}" ]]; then
+              seed_real="$(cd "${seed}" && pwd -P)"
+            fi
+
+            if [[ -n "${seed_real}" && "${workspace_real}" == "${seed_real}" ]]; then
+              echo "bootstrap_status=blocked reason=workspace_matches_seed"
+              echo "::error::Cannot clean reused workspace because workspace path matches CODEX_LOCAL_REPO_SEED: ${workspace_real}"
+              exit 1
+            fi
+
+            log_bootstrap local "cleaning reused workspace before checkout"
+            git -C "${workspace}" reset --hard
+            git -C "${workspace}" clean -ffdx
+          }
+
+          hydrate_from_local_sources() {
+            if is_bare_mirror "${mirror}"; then
+              log_bootstrap local "hydrating from bare mirror ${mirror}"
+              git fetch --no-tags "${mirror}" \
+                "+refs/heads/*:refs/remotes/local-mirror/*" \
+                "+refs/pull/*:refs/remotes/local-pr/*" || true
+            fi
+
+            if [[ -d "${seed}/.git" ]]; then
+              log_bootstrap local "hydrating from seed ${seed}"
+              git fetch --no-tags "${seed}" \
+                "+refs/heads/*:refs/remotes/local-seed/*" \
+                "+refs/pull/*:refs/remotes/local-seed-pr/*" || true
+            fi
+          }
+
           exact_head=false
+          prepare_reused_workspace
+          hydrate_from_local_sources
           if git cat-file -e "${HEAD_SHA}^{commit}" 2>/dev/null; then
             git checkout -B "${HEAD_REF}" "${HEAD_SHA}"
             git reset --hard "${HEAD_SHA}"
@@ -138,6 +237,10 @@ jobs:
           fi
 
           if [[ "${exact_head}" != "true" ]]; then
+            echo "bootstrap_status=blocked reason=exact_head_unverified"
+            log_bootstrap blocked "Cannot verify exact PR head ${HEAD_SHA}; refusing to run auto-fix on a stale local seed."
+            gh pr comment "${PR_NUMBER}" \
+              --body "**Codex checkout/bootstrap blocked.** Cannot verify exact PR head \`${HEAD_SHA}\` from local mirror/seed or the bounded GitHub tarball fallback, so auto-fix stopped before review execution. Re-run after the local mirror catches up or GitHub tarball streaming recovers." || true
             echo "::error::Cannot verify exact PR head ${HEAD_SHA}; refusing to run auto-fix on a stale local seed."
             exit 1
           fi
@@ -145,6 +248,7 @@ jobs:
           echo "CODEX_PUBLISH_VIA_GH_API=true" >> "${GITHUB_ENV}"
           echo "Checked out PR branch ${HEAD_REF} with resilient local/API bootstrap."
         env:
+          CODEX_LOCAL_BARE_MIRROR: /Users/tyone/github/upload-download-util.git
           CODEX_LOCAL_REPO_SEED: /Users/tyone/github/upload-download-util
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -166,7 +270,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 轮次上限保护（Round-Max 则停止）
-        if: steps.round.outputs.current_round == 'gemini-review-round-max'
+        if: steps.round.outputs.current_round == 'gemini-review-round-max' && env.CODEX_AUTO_FIX_STRICT == 'true'
         run: |
           echo "已达到最大轮次（2 轮并已完成），停止自动化修复"
           gh pr comment "${PR_NUMBER}" \
@@ -176,7 +280,7 @@ jobs:
 
       - name: 提取 Gemini Review 完整内容
         id: gemini
-        if: steps.round.outputs.current_round != 'gemini-review-round-max'
+        if: steps.round.outputs.current_round != 'gemini-review-round-max' || env.CODEX_AUTO_FIX_STRICT != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
@@ -207,7 +311,7 @@ jobs:
           echo "${DELIM}" >> "$GITHUB_ENV"
 
       - name: Convert review markdown to JSON primary input
-        if: steps.round.outputs.current_round != 'gemini-review-round-max' && env.USE_REVIEW_JSON == 'true'
+        if: (steps.round.outputs.current_round != 'gemini-review-round-max' || env.CODEX_AUTO_FIX_STRICT != 'true') && env.USE_REVIEW_JSON == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -231,24 +335,30 @@ jobs:
           echo "review_issue_count=$(jq '.issues | length' /tmp/review.json)"
 
       - name: Auto-fix queue guard diagnostics
-        if: steps.round.outputs.current_round != 'gemini-review-round-max'
+        if: steps.round.outputs.current_round != 'gemini-review-round-max' || env.CODEX_AUTO_FIX_STRICT != 'true'
         run: |
           echo "codex_queue_group=codex-auto-fix-${PR_NUMBER}"
-          echo "codex_job_timeout_minutes=35"
-          echo "codex_pr_auto_fix_step_timeout_minutes=30"
-          echo "codex_agent_timeout_seconds=1200"
-          echo "A newer Gemini review for the same PR cancels older codex-fix runs before they can stale-block the queue."
+          echo "codex_job_timeout_minutes=${CODEX_JOB_TIMEOUT_MINUTES}"
+          echo "codex_pr_auto_fix_step_timeout_minutes=${CODEX_PR_AUTO_FIX_STEP_TIMEOUT_MINUTES}"
+          echo "codex_agent_timeout_seconds=${CODEX_AGENT_TIMEOUT_SECONDS}"
+          echo "codex_auto_fix_budget_seconds=${CODEX_AUTO_FIX_BUDGET_SECONDS}"
+          echo "codex_auto_fix_reserve_seconds=${CODEX_AUTO_FIX_RESERVE_SECONDS}"
+          echo "A newer Gemini review for the same PR waits for the active codex-fix run instead of canceling it mid-publish."
 
       - name: 调用 codex-auto-fix pr-auto-fix
-        timeout-minutes: 30
-        if: steps.round.outputs.current_round != 'gemini-review-round-max'
+        timeout-minutes: 45
+        if: steps.round.outputs.current_round != 'gemini-review-round-max' || env.CODEX_AUTO_FIX_STRICT != 'true'
         id: codex
         env:
           CODEX_SKILL_PACK_ROOT: ${{ github.workspace }}/scripts/codex-cli
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CODEX_AGENT_COMMAND_SECRET: ${{ secrets.CODEX_AGENT_COMMAND }}
           CODEX_AGENT_COMMAND_VAR: ${{ vars.CODEX_AGENT_COMMAND }}
-          CODEX_AGENT_TIMEOUT_SECONDS: 1200
+          CODEX_AGENT_TIMEOUT_SECONDS: ${{ env.CODEX_AGENT_TIMEOUT_SECONDS }}
+          CODEX_AGENT_MODEL: ${{ env.CODEX_AGENT_MODEL }}
+          CODEX_AUTO_FIX_BUDGET_SECONDS: ${{ env.CODEX_AUTO_FIX_BUDGET_SECONDS }}
+          CODEX_AUTO_FIX_RESERVE_SECONDS: ${{ env.CODEX_AUTO_FIX_RESERVE_SECONDS }}
+          CODEX_AUTO_FIX_VERIFY_COMMANDS: ${{ env.CODEX_AUTO_FIX_VERIFY_COMMANDS }}
         run: |
           set -euo pipefail
 
@@ -260,6 +370,13 @@ jobs:
 
           if [[ -z "${CODEX_AGENT_COMMAND:-}" ]]; then
             echo "::error::CODEX_AGENT_COMMAND is not configured. Set repository secret or variable CODEX_AGENT_COMMAND to the real local Codex executor, not codex-auto-fix."
+            exit 1
+          fi
+
+          DOCTOR_JSON="$(cargo run --manifest-path scripts/codex-cli/Cargo.toml --bin codex-auto-fix -- doctor --json)"
+          echo "$DOCTOR_JSON" | jq -r '.checks[] | "[\(.status)] \(.name): \(.message)"'
+          if echo "$DOCTOR_JSON" | jq -e '.checks[] | select(.name == "agent.command" and .status == "warning")' >/dev/null; then
+            echo "::error::CODEX_AGENT_COMMAND is not safe for auto-fix. It is missing or recursively points to codex-auto-fix; set it to the real Codex CLI executor."
             exit 1
           fi
 
@@ -275,6 +392,8 @@ jobs:
             "${REVIEW_ARGS[@]}" \
             --max-rounds ${{ env.MAX_ROUNDS }} \
             --yes)
+          printf '%s\n' "$RESULT" > /tmp/codex-result.json
+          echo "CODEX_RESULT_PATH=/tmp/codex-result.json" >> "$GITHUB_ENV"
 
           echo "skill_result<<EOF" >> "$GITHUB_OUTPUT"
           echo "$RESULT" >> "$GITHUB_OUTPUT"
@@ -292,7 +411,7 @@ jobs:
           echo "review_clean=$REVIEW_CLEAN" >> "$GITHUB_OUTPUT"
 
       - name: 推进 Review 状态机
-        if: steps.round.outputs.current_round != 'gemini-review-round-max'
+        if: steps.round.outputs.current_round != 'gemini-review-round-max' || env.CODEX_AUTO_FIX_STRICT != 'true'
         env:
           GH_TOKEN: ${{ secrets.GEMINI_REVIEW_TOKEN || secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
@@ -301,7 +420,7 @@ jobs:
           PUSH_BLOCKED: ${{ steps.codex.outputs.push_blocked }}
           PENDING_COUNT: ${{ steps.codex.outputs.pending_count }}
           MAX_ROUNDS: ${{ env.MAX_ROUNDS }}
-          WAIT_FOR_GEMINI_REVIEW: true
+          WAIT_FOR_GEMINI_REVIEW: false
           GEMINI_REVIEW_TIMEOUT_SECONDS: 600
           GEMINI_REVIEW_POLL_INTERVAL_SECONDS: 15
         run: |

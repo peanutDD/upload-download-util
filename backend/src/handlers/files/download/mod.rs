@@ -28,7 +28,7 @@ use crate::extractors::AuthenticatedUserQuery;
 use crate::utils::hls_processing_response;
 use crate::utils::response::file_response;
 use crate::utils::thumbnail::generate_thumbnail_webp;
-use crate::utils::AppError;
+use crate::utils::{effective_file_mime_type, AppError};
 use crate::AppState;
 
 use headers::EntityHeaders;
@@ -58,7 +58,7 @@ fn resolve_effective_mime(file: &crate::models::file::File) -> String {
     if is_gif_mime(&file.mime_type) || filename_is_gif(&file.original_filename) {
         return "image/gif".to_string();
     }
-    file.mime_type.clone()
+    effective_file_mime_type(&file.original_filename, Some(&file.mime_type))
 }
 
 async fn file_get_or_head_response(
